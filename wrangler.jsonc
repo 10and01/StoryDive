@@ -9,6 +9,10 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
+  // 自定义域（国内可直访；workers.dev 被墙）。区激活后由 wrangler deploy 自动建 DNS + 证书
+  "routes": [
+    { "pattern": "storydive-10wtw01.org", "custom_domain": true }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
