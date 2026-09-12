@@ -41,3 +41,10 @@ bun run lint                       # ESLint（历史遗留 4 处 set-state-in-ef
 - 故事配图引用 `cdn.eazo.ai` 公开 CDN（内容资产，非平台依赖）；海报 canvas 依赖 `/api/img-proxy` 同源代理。
 - OpenNext 在 Windows 本机构建会有兼容性警告；部署请在 WSL/Linux/CI 或忽略警告执行 `bun run deploy`。
 - 本机未装 bun 时，OpenNext CLI 内部调用 `bun` 会失败：可 `./node_modules/.bin/next build && ./node_modules/.bin/opennextjs-cloudflare build --skipNextBuild` 等价替代。
+- **Windows 本地部署配方**（2026-09 实测）：
+  1. `./node_modules/.bin/next build`
+  2. `taskkill //F //IM workerd.exe`（`initOpenNextCloudflareForDev` 拉起的代理进程会锁住 `.open-next/assets`，导致 OpenNext 清目录 EPERM）
+  3. `rm -rf .open-next && ./node_modules/.bin/opennextjs-cloudflare build --skipNextBuild`
+  4. `mv open-next.config.ts open-next.config.ts.bak && npx wrangler deploy && mv open-next.config.ts.bak open-next.config.ts`
+     （wrangler 检测到 open-next.config.ts 会委派给 opennextjs-cloudflare，后者在此环境因非 ASCII 路径/npx 解析失败，直接移开配置绕过）
+- 线上：`https://storydive-10wtw01.org`（自定义域，workers.dev 在国内被墙）；Git push 自动构建部署。
