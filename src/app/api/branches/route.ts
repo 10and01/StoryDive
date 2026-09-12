@@ -7,7 +7,7 @@ import {
 } from "@/lib/db/queries/branches";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const storyId = request.nextUrl.searchParams.get("storyId");
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 const VALID_KINDS = new Set(["dialogue", "fork", "rewrite"]);
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;

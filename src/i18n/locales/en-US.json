@@ -274,5 +274,11 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "openStory": "Back to story"
+  },
+  "auth": {
+    "gateTitle": "Sign in to play",
+    "gateDesc": "Guests can browse the shelf and read stories freely. Dialogue, branching, rewriting, theater and court require a Zhihu account.",
+    "gateCta": "Sign in with Zhihu",
+    "gateComingSoon": "Zhihu sign-in is coming soon"
   }
 }

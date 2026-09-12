@@ -7,7 +7,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const { id } = await params;

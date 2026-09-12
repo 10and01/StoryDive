@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
+import { LoginGate } from "@/components/user-profile/login-gate";
 import {
   fetchCourtCase,
   fetchTally,
@@ -35,24 +36,31 @@ export function Court() {
   const [verdictLoading, setVerdictLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const load = useCallback(async (seed?: number) => {
-    setLoading(true);
-    setRevealed(0);
-    setVerdict("");
-    try {
-      const c = await fetchCourtCase(seed);
-      setTrial(c);
-      try {
-        setTally(await fetchTally(c.id));
-      } catch {
-        setTally({ red: 0, blue: 0, mine: null });
+  const load = useCallback(
+    async (seed?: number) => {
+      if (!user) {
+        setLoading(false);
+        return;
       }
-    } catch {
-      setTrial(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      setLoading(true);
+      setRevealed(0);
+      setVerdict("");
+      try {
+        const c = await fetchCourtCase(seed);
+        setTrial(c);
+        try {
+          setTally(await fetchTally(c.id));
+        } catch {
+          setTally({ red: 0, blue: 0, mine: null });
+        }
+      } catch {
+        setTrial(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   useEffect(() => {
     const id = setTimeout(() => void load(), 0);
@@ -96,6 +104,14 @@ export function Court() {
   const redPct = total > 0 ? Math.round((tally.red / total) * 100) : 50;
   const bluePct = 100 - redPct;
   const allRevealed = trial ? revealed >= trial.rounds.length : false;
+
+  if (!user) {
+    return (
+      <AppShell>
+        <LoginGate />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

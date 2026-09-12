@@ -67,7 +67,7 @@ function toCase(obj: unknown, caseId: string, caseTitle: string): CourtCase | nu
 // GET /api/court  盐灵现开一场庭审（登录必需）。
 // caseId 用「案由种子 id + 当天」拼成，保证同一天同一案由的投票汇聚到一起。
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const seedParam = request.nextUrl.searchParams.get("seed");

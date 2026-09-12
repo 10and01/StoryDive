@@ -13,7 +13,7 @@ const VALID_KINDS = new Set(["dialogue", "fork", "rewrite"]);
 //   ?storyId=xxx&anchor=7              某名场面（入局点）下的改写榜
 // 公开可读；带登录态时附加「当前用户是否点过赞」。
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   const userId = auth.ok ? auth.user.id : null;
 
   const sp = request.nextUrl.searchParams;
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/workshop  发布一条改写到工坊（登录必需）；parentPostId 存在则为接力盖楼。
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;

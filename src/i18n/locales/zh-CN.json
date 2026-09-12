@@ -274,5 +274,11 @@
     "collapse": "收起",
     "expand": "展开",
     "openStory": "回到故事"
+  },
+  "auth": {
+    "gateTitle": "登录后开始体验",
+    "gateDesc": "游客可自由浏览书架与阅读故事；对戏、分叉、改写、剧场、法庭等完整体验需登录知乎账号。",
+    "gateCta": "知乎登录",
+    "gateComingSoon": "知乎登录即将开放，敬请期待"
   }
 }

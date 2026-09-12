@@ -97,7 +97,7 @@ function toPlay(
 
 // GET /api/theater  生成今日/一局盐灵剧场（登录必需，与全站一致）。
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   // 1) 优先实时热榜；拿不到则用「今日话题」（按天确定性轮换，永不空场的第一层兜底）

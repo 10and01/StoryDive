@@ -17,6 +17,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
 import { fetchTheaterPlay } from "@/lib/api/theater";
+import { LoginGate } from "@/components/user-profile/login-gate";
 import { publishToWorkshop } from "@/lib/api/workshop";
 import type {
   TheaterPlay,
@@ -72,6 +73,10 @@ export function Theater() {
   }, []);
 
   const load = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const p = await fetchTheaterPlay();
@@ -83,7 +88,7 @@ export function Theater() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const id = setTimeout(() => void load(), 0);
@@ -94,6 +99,14 @@ export function Theater() {
   const ending: TheaterEnding | undefined = play?.endings.find(
     (e) => e.id === cursor,
   );
+
+  if (!user) {
+    return (
+      <AppShell>
+        <LoginGate />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

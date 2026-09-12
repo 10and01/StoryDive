@@ -20,13 +20,31 @@ export type AuthResult =
 
 // requireAuth 的调用约定（各 API 路由统一）：
 // const auth = await requireAuth(request); if (!auth.ok) return auth.response;
-export async function requireAuth(request: Request): Promise<AuthResult> {
+// opts.real = true 时拒绝游客会话（401 + login_required），用于"体验类"动作接口；
+// 浏览预览类接口不带该参数，游客可正常访问。
+export async function requireAuth(
+  request: Request,
+  opts?: { real?: boolean },
+): Promise<AuthResult> {
   const payload = await verifySession(readSessionCookie(request));
   if (!payload) {
     return {
       ok: false,
       response: NextResponse.json(
         { error: "unauthorized" },
+        { status: 401 },
+      ),
+    };
+  }
+  if (opts?.real && payload.guest) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: "login_required",
+          code: "login_required",
+          message: "该体验需使用知乎账号登录",
+        },
         { status: 401 },
       ),
     };

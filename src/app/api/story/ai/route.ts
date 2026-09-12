@@ -24,7 +24,7 @@ interface AiBody {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as AiBody;

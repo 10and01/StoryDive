@@ -5,7 +5,7 @@ import { judgeVerdictPrompt } from "@/lib/court/prompts";
 
 // POST /api/court/verdict  投票结束后，盐官依票数给一句总评（登录必需）。
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
+  const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
