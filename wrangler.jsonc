@@ -5,7 +5,7 @@
   //   2. `bun run db:migrate:remote` 应用数据库迁移
   //   3. `wrangler secret put` 配置生产密钥（见 README「部署」一节）
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ruju",
+  "name": "storydive",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
@@ -17,7 +17,7 @@
     {
       "binding": "DB",
       "database_name": "ruju-db",
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "database_id": "5089a48e-86dd-433d-bb80-fc7e4d5c5361",
       "migrations_dir": "src/lib/db/migrations"
     }
   ],
