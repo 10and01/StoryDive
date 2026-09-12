@@ -31,9 +31,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const result = await fetchUserProfile();
-      // 游客会话在前端视为「未登录」：浏览预览不受影响，
+      // 游客会话在前端默认视为「未登录」：浏览预览不受影响，
       // 各体验功能的 `if (!user)` 登录引导会自然亮起。
-      setUser(result.user && !result.user.guest ? result.user : null);
+      // 本地测试（NEXT_PUBLIC_GUEST_EXPERIENCE=open）时游客保留完整体验。
+      const openGuests = process.env.NEXT_PUBLIC_GUEST_EXPERIENCE === "open";
+      setUser(
+        result.user && (!result.user.guest || openGuests) ? result.user : null,
+      );
       setOauthConfigured(result.oauthConfigured);
     } catch {
       setUser(null);
