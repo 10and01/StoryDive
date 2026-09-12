@@ -5,7 +5,8 @@
   "packageManager": "bun@1.3.9",
   "scripts": {
     "dev": "opennextjs-cloudflare dev",
-    "build": "opennextjs-cloudflare build",
+    "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
     "start": "opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
