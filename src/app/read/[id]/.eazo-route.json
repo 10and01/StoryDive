@@ -1,0 +1,10 @@
+{
+  "route": "read/[id]",
+  "name": "阅读器",
+  "nav_type": "stack",
+  "parent": "",
+  "order_index": 1,
+  "icon": "book-open",
+  "summary": "正文流+发光入局点+故事图谱+三选一",
+  "preview_route": "read/qinshihuang"
+}

@@ -1,0 +1,10 @@
+{
+  "route": "graph/[id]",
+  "name": "故事图谱",
+  "nav_type": "stack",
+  "parent": "read/[id]",
+  "order_index": 2,
+  "icon": "share-2",
+  "summary": "全屏故事图谱与分支树",
+  "preview_route": "graph/qinshihuang"
+}

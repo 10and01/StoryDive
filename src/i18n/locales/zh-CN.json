@@ -1,0 +1,278 @@
+{
+  "share": {
+    "brand": "入局 · 名场面",
+    "cardTitle": "名场面分享卡",
+    "reader": "我",
+    "openComposer": "分享出去",
+    "download": "保存图片",
+    "retry": "分享没成功，稍后再试一次。",
+    "copied": "文案已复制，去粘贴分享吧",
+    "sourceFallback": "知乎盐言故事",
+    "posterFallback": "海报生成中遇到点问题，仍可用文字分享。",
+    "fieldStory": "作品",
+    "fieldKind": "玩法",
+    "fieldScene": "名场面",
+    "angle": "来我这一局，看故事怎么在你手里改道。"
+  },
+  "court": {
+    "title": "名场面法庭",
+    "subtitle": "盐灵现开红蓝两造对赌，交锋三回合，观众投票定胜负",
+    "opening": "盐灵正在传唤两造、准备开庭…",
+    "failed": "开庭失败了，再试一次？",
+    "retry": "重新开庭",
+    "caseLabel": "案由",
+    "clash": "两造交锋",
+    "round": "第 {{n}} 回合",
+    "startClash": "开始交锋",
+    "nextRound": "下一回合",
+    "red": "红方主张",
+    "blue": "蓝方主张",
+    "voteHint": "两造陈词已毕——你更认哪一种？",
+    "loginToVote": "登录后即可投票定胜负",
+    "voteRed": "投红方",
+    "voteBlue": "投蓝方",
+    "redVotes": "红方 {{n}} 票",
+    "blueVotes": "蓝方 {{n}} 票",
+    "judge": "盐官总评",
+    "nextCase": "换一桩案子",
+    "seal": "判",
+    "rally": "你站哪一方？来名场面法庭投下你的一票",
+    "rallyShare": "拉票·分享判词",
+    "shareTitle": "本庭判词",
+    "shareGo": "去拉票",
+    "shareDownload": "保存图片",
+    "shareRetry": "生成失败，再试一次？",
+    "copied": "判决文案已复制，去粘贴分享吧"
+  },
+  "theater": {
+    "title": "盐灵剧场",
+    "subtitle": "盐灵把热点话题变成一局多结局微剧场，每天都在长",
+    "summoning": "盐灵正在把今天的话题搬上台…",
+    "failed": "召唤剧场失败了，再试一次？",
+    "retry": "重新召唤",
+    "fromHot": "来自知乎实时热榜",
+    "fromSpirit": "盐灵今日出题",
+    "todayBadge": "今日话题 · {{date}}",
+    "progress": "第 {{n}} 幕 / 共 {{total}} 幕",
+    "collected": "本话题已解锁结局 {{n}}/{{total}}",
+    "yourRole": "你扮演：{{role}}",
+    "trail": "你的足迹",
+    "endingLabel": "本局结局",
+    "publish": "发到殿堂",
+    "published": "已进殿堂",
+    "loginToPublish": "登录后发布",
+    "replay": "重玩这局",
+    "next": "换一个话题"
+  },
+  "workshop": {
+    "hallTitle": "名场面殿堂",
+    "hallSubtitle": "读者共写的平行走向，越玩越多",
+    "publish": "发布到工坊",
+    "publishing": "发布中…",
+    "published": "已进殿堂",
+    "publishHint": "把这段改写发布到「名场面殿堂」，让别人接着往下写、给你点赞。",
+    "loginToPublish": "登录后即可发布到工坊",
+    "tabTop": "全站总榜",
+    "tabScene": "本名场面",
+    "empty": "还没有人在这里发布改写，来当第一个吧。",
+    "emptyScene": "这个入局点还没有人发布改写，第一楼交给你。",
+    "floors": "{{n}} 楼",
+    "totalLikes": "{{n}} 赞",
+    "byAuthor": "由 {{name}} 起笔",
+    "anonymous": "无名之辈",
+    "relayTitle": "接力盖楼",
+    "relayHint": "在这条链的最后，接着往下写一段。",
+    "relayPlaceholder": "承接上文，写下你的续写……",
+    "relaySubmit": "接上一楼",
+    "relaying": "续写中…",
+    "openChain": "查看接力（{{n}} 楼）",
+    "like": "点赞",
+    "liked": "已赞",
+    "readOnStory": "去读原著这一幕",
+    "loginToInteract": "登录后即可点赞与接力",
+    "floorLabel": "第 {{n}} 楼",
+    "originalFloor": "起笔"
+  },
+  "common": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "loading": "加载中…",
+    "on": "开",
+    "off": "关",
+    "close": "关闭",
+    "save": "保存",
+    "cancel": "取消",
+    "edit": "编辑",
+    "delete": "删除",
+    "userId": "用户 ID",
+    "back": "返回"
+  },
+  "language": {
+    "label": "语言",
+    "triggerLabel": "语言：{{language}}",
+    "followSystem": "跟随系统",
+    "followSystemWithLanguage": "跟随系统（{{language}}）",
+    "enUS": "English",
+    "zhCN": "中文"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "页面未找到",
+      "description": "你访问的页面不存在，或已被移动。",
+      "backHome": "返回首页"
+    },
+    "generic": {
+      "title": "出了点问题",
+      "description": "发生了意外错误。你可以重试，或返回首页继续。",
+      "tryAgain": "重试",
+      "backHome": "返回首页"
+    }
+  },
+  "nav": {
+    "shelf": "书架",
+    "theater": "盐灵剧场",
+    "court": "名场面法庭",
+    "branches": "我的支线",
+    "hall": "殿堂"
+  },
+  "shelf": {
+    "kicker": "盐选 · 活故事书架",
+    "title": "旧物书架",
+    "stamp": "入局",
+    "sub": "{{count}} 件故事旧物，点亮一件入局。",
+    "fiction": "虚构",
+    "nonfiction": "纪实",
+    "enter": "入局",
+    "reason": "推理复盘",
+    "searchPlaceholder": "搜索作品 · 标题 / 作者 / 关键词",
+    "resultCount": "共 {{count}} 件作品",
+    "clearFilters": "清除筛选",
+    "empty": "没有匹配的作品，换个关键词或标签试试。"
+  },
+  "reader": {
+    "graphToggle": "故事图谱",
+    "scenePicker": "想从哪个情节开聊？",
+    "enterHint": "入局点",
+    "source": "来源",
+    "author": "作者",
+    "cover": {
+      "begin": "轻点开卷",
+      "chapters": "共 {{count}} 章"
+    },
+    "chapterMark": "第 {{index}} 幕",
+    "pace": {
+      "paced": "沉浸模式",
+      "expand": "全文展开",
+      "continue": "轻点继续",
+      "scrollHint": "下拉继续",
+      "continueAfterEnter": "先入局，或轻点继续往下读"
+    },
+    "actions": {
+      "dialogue": "对戏",
+      "fork": "分叉",
+      "rewrite": "改写"
+    },
+    "dialogue": {
+      "title": "与 {{name}} 对戏",
+      "placeholder": "对 {{name}} 说点什么…",
+      "send": "发送",
+      "keep": "并入这条支线",
+      "kept": "已并入支线",
+      "thinking": "{{name}} 正在斟酌…",
+      "scene": {
+        "solo": "单独对戏",
+        "ensemble": "群像同台",
+        "onStage": "此刻同台：{{names}}",
+        "ensembleHint": "在场众人都在。说句话，看他们如何各自反应、彼此接话。",
+        "ensembleThinking": "众人正在你一言我一语…",
+        "ensemblePlaceholder": "对在场众人说点什么…",
+        "ensembleKeep": "并入这条群像支线",
+        "ensembleTitle": "一场群像对戏"
+      }
+    },
+    "fork": {
+      "title": "在此分叉",
+      "custom": "自定义你的选择…",
+      "run": "推演走向",
+      "running": "正在推演平行走向…",
+      "keep": "收藏这条分支",
+      "kept": "分支已收藏"
+    },
+    "rewrite": {
+      "title": "注入你的脑洞",
+      "placeholder": "在这一段后，你想让故事怎么走？（例如：假如此时扶苏也穿越了…）",
+      "run": "顺着续写",
+      "running": "AI 正在顺着原文风格续写…",
+      "badge": "读者脑洞版",
+      "keep": "收藏这段改写",
+      "kept": "改写已收藏"
+    }
+  },
+  "graph": {
+    "title": "故事图谱",
+    "relations": "人物关系",
+    "plot": "情节链条",
+    "legendCharacter": "人物",
+    "legendEvent": "事件",
+    "legendChoice": "抉择",
+    "branchesGrown": "已长出 {{count}} 条支线",
+    "viewRelation": "人物关系网",
+    "viewTimeline": "情节时间线",
+    "viewBranch": "入局点·分支树",
+    "timelineEmpty": "本章暂无关键节点",
+    "branchEmpty": "本篇暂无入局点",
+    "nodeNoBrief": "暂无更多说明",
+    "openEnter": "前往该入局点 · 对戏 / 分叉 / 改写",
+    "talkTo": "找 {{name}} 对戏",
+    "timelineEnterTap": "点击可开启该入局点",
+    "optionTap": "点击前往该入局点尝试这个分叉",
+    "branchTap": "点击回看这条支线内容",
+    "exitFocus": "退出聚焦",
+    "tapEmptyToExit": "轻点空白处退出聚焦 · 可拖动节点"
+  },
+  "scene": {
+    "crocodile": {
+      "drag": "拖动水豚过河",
+      "hint": "拖动水豚，坐上鳄鱼的背",
+      "landed": "全网瞬间沸腾——「十八线女星坐鳄鱼」冲上热搜第一",
+      "tag0": "#水豚坐鳄鱼#",
+      "tag1": "太抽象了",
+      "tag2": "求这只水豚当我妈"
+    }
+  },
+  "ambient": {
+    "on": "氛围音·开",
+    "off": "氛围音·关"
+  },
+  "reason": {
+    "decisionTitle": "关键决策点",
+    "pick": "做出选择",
+    "verdict": "史实复盘",
+    "nodeTip": "点击节点查看要点",
+    "share": "分享复盘卡片"
+  },
+  "branches": {
+    "title": "我的平行结局",
+    "sub": "你在每部故事里长出的平行走向，汇成一棵可回看的叙事树。",
+    "empty": "还没有支线。回到书架，点亮一件旧物开始入局。",
+    "kinds": {
+      "dialogue": "对戏",
+      "fork": "分叉",
+      "rewrite": "改写"
+    },
+    "anchor": "第 {{n}} 段",
+    "share": "生成分享卡片",
+    "publish": "发布到殿堂",
+    "publishing": "发布中…",
+    "published": "已进殿堂",
+    "loginToPublish": "登录后发布",
+    "count": "{{n}} 条平行走向",
+    "root": "从原著入局点长出",
+    "continued": "接着这里往下玩的",
+    "continue": "接着往下玩",
+    "collapse": "收起",
+    "expand": "展开",
+    "openStory": "回到故事"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "route": "branches",
+  "name": "我的支线",
+  "nav_type": "tab",
+  "order_index": 4,
+  "icon": "git-branch",
+  "summary": "收藏的分支树、对话、改写、结局卡片"
+}

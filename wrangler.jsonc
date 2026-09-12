@@ -1,0 +1,27 @@
+{
+  // Cloudflare Workers 部署配置（OpenNext 适配 Next.js）。
+  // 首次部署前：
+  //   1. `wrangler d1 create ruju-db`，把返回的 database_id 填到下面
+  //   2. `bun run db:migrate:remote` 应用数据库迁移
+  //   3. `wrangler secret put` 配置生产密钥（见 README「部署」一节）
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ruju",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ruju-db",
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID",
+      "migrations_dir": "src/lib/db/migrations"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

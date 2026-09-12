@@ -1,0 +1,278 @@
+{
+  "share": {
+    "brand": "Step In · Standout Scene",
+    "cardTitle": "Scene share card",
+    "reader": "Me",
+    "openComposer": "Share it",
+    "download": "Save image",
+    "retry": "Sharing didn't go through. Try again in a moment.",
+    "copied": "Text copied — paste it anywhere",
+    "sourceFallback": "Zhihu Salt Fiction",
+    "posterFallback": "The poster hit a snag, but you can still share as text.",
+    "fieldStory": "Story",
+    "fieldKind": "Mode",
+    "fieldScene": "Scene",
+    "angle": "Come play my run and watch the story change in your hands."
+  },
+  "court": {
+    "title": "Showdown Court",
+    "subtitle": "The Salt Spirit stages a red-vs-blue rewrite duel; three rounds, then the crowd votes",
+    "opening": "Summoning both sides and convening the court…",
+    "failed": "Failed to convene court. Try again?",
+    "retry": "Reconvene",
+    "caseLabel": "Case",
+    "clash": "Cross-examination",
+    "round": "Round {{n}}",
+    "startClash": "Start the clash",
+    "nextRound": "Next round",
+    "red": "Red's claim",
+    "blue": "Blue's claim",
+    "voteHint": "Both sides have spoken — which do you back?",
+    "loginToVote": "Log in to cast your vote",
+    "voteRed": "Vote Red",
+    "voteBlue": "Vote Blue",
+    "redVotes": "Red: {{n}}",
+    "blueVotes": "Blue: {{n}}",
+    "judge": "The Salt Judge",
+    "nextCase": "Next case",
+    "seal": "判",
+    "rally": "Which side are you on? Cast your vote at Showdown Court",
+    "rallyShare": "Rally votes · Share verdict",
+    "shareTitle": "The Verdict",
+    "shareGo": "Rally votes",
+    "shareDownload": "Save image",
+    "shareRetry": "Failed to generate. Try again?",
+    "copied": "Verdict text copied — paste it anywhere"
+  },
+  "theater": {
+    "title": "Salt Spirit Theater",
+    "subtitle": "The Salt Spirit turns a trending topic into a branching micro-play — fresh every day",
+    "summoning": "The Salt Spirit is staging today's topic…",
+    "failed": "Failed to summon a play. Try again?",
+    "retry": "Summon again",
+    "fromHot": "From Zhihu live hot list",
+    "fromSpirit": "Today's prompt by the Salt Spirit",
+    "todayBadge": "Today · {{date}}",
+    "progress": "Scene {{n}} / {{total}}",
+    "collected": "Endings unlocked {{n}}/{{total}}",
+    "yourRole": "You play: {{role}}",
+    "trail": "Your path",
+    "endingLabel": "Ending",
+    "publish": "Publish to Hall",
+    "published": "In the Hall",
+    "loginToPublish": "Sign in to publish",
+    "replay": "Replay",
+    "next": "New topic"
+  },
+  "workshop": {
+    "hallTitle": "Scene Hall",
+    "hallSubtitle": "Parallel takes co-written by readers — it grows as you play",
+    "publish": "Publish to Workshop",
+    "publishing": "Publishing…",
+    "published": "In the Hall",
+    "publishHint": "Publish this rewrite to the Scene Hall so others can continue it and vote for you.",
+    "loginToPublish": "Sign in to publish to the Workshop",
+    "tabTop": "All-time Top",
+    "tabScene": "This Scene",
+    "empty": "No rewrites here yet — be the first.",
+    "emptyScene": "No rewrites at this step-in point yet. The first floor is yours.",
+    "floors": "{{n}} floors",
+    "totalLikes": "{{n}} likes",
+    "byAuthor": "Started by {{name}}",
+    "anonymous": "Anonymous",
+    "relayTitle": "Relay chain",
+    "relayHint": "Continue from the last floor of this chain.",
+    "relayPlaceholder": "Pick up from above and write your continuation…",
+    "relaySubmit": "Add a floor",
+    "relaying": "Adding…",
+    "openChain": "View relay ({{n}} floors)",
+    "like": "Like",
+    "liked": "Liked",
+    "readOnStory": "Read this scene in the story",
+    "loginToInteract": "Sign in to like and continue",
+    "floorLabel": "Floor {{n}}",
+    "originalFloor": "Opening"
+  },
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "loading": "Loading…",
+    "on": "On",
+    "off": "Off",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "userId": "User ID",
+    "back": "Back"
+  },
+  "language": {
+    "label": "Language",
+    "triggerLabel": "Language: {{language}}",
+    "followSystem": "System",
+    "followSystemWithLanguage": "System ({{language}})",
+    "enUS": "English",
+    "zhCN": "中文"
+  },
+  "errors": {
+    "notFound": {
+      "code": "404",
+      "title": "Page not found",
+      "description": "The page you're looking for doesn't exist or may have been moved.",
+      "backHome": "Back to home"
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. You can try again or return to the home page.",
+      "tryAgain": "Try again",
+      "backHome": "Back to home"
+    }
+  },
+  "nav": {
+    "shelf": "Shelf",
+    "theater": "Theater",
+    "court": "Court",
+    "branches": "My Branches",
+    "hall": "Hall"
+  },
+  "shelf": {
+    "kicker": "YANXUAN / LIVE STORY SHELF",
+    "title": "Relic Shelf",
+    "stamp": "Enter",
+    "sub": "{{count}} story relics — light one up to step in.",
+    "fiction": "Fiction",
+    "nonfiction": "Nonfiction",
+    "enter": "Enter",
+    "reason": "Reason Board",
+    "searchPlaceholder": "Search works · title / author / keyword",
+    "resultCount": "{{count}} works",
+    "clearFilters": "Clear filters",
+    "empty": "No matching works — try another keyword or tag."
+  },
+  "reader": {
+    "graphToggle": "Story Graph",
+    "scenePicker": "Where do you want to start the conversation?",
+    "enterHint": "Enter point",
+    "source": "Source",
+    "author": "Author",
+    "cover": {
+      "begin": "Tap to begin",
+      "chapters": "{{count}} chapters"
+    },
+    "chapterMark": "Act {{index}}",
+    "pace": {
+      "paced": "Immersive",
+      "expand": "Show full text",
+      "continue": "Tap to continue",
+      "scrollHint": "Scroll to continue",
+      "continueAfterEnter": "Step in, or tap to keep reading"
+    },
+    "actions": {
+      "dialogue": "Talk",
+      "fork": "Branch",
+      "rewrite": "Rewrite"
+    },
+    "dialogue": {
+      "title": "Talk with {{name}}",
+      "placeholder": "Say something to {{name}}…",
+      "send": "Send",
+      "keep": "Keep as a branch",
+      "kept": "Kept as a branch",
+      "thinking": "{{name}} is considering…",
+      "scene": {
+        "solo": "One-on-one",
+        "ensemble": "Ensemble scene",
+        "onStage": "On stage now: {{names}}",
+        "ensembleHint": "Everyone present is here. Say something and watch them each react and talk over one another.",
+        "ensembleThinking": "The room is talking over each other…",
+        "ensemblePlaceholder": "Say something to everyone present…",
+        "ensembleKeep": "Keep this ensemble branch",
+        "ensembleTitle": "An ensemble scene"
+      }
+    },
+    "fork": {
+      "title": "Branch here",
+      "custom": "Your own choice…",
+      "run": "Simulate outcome",
+      "running": "Simulating a parallel path…",
+      "keep": "Save this branch",
+      "kept": "Branch saved"
+    },
+    "rewrite": {
+      "title": "Inject your idea",
+      "placeholder": "After this passage, where should the story go? (e.g. what if Fusu also time-traveled here…)",
+      "run": "Continue in style",
+      "running": "AI is continuing in the original style…",
+      "badge": "Reader's version",
+      "keep": "Save this rewrite",
+      "kept": "Rewrite saved"
+    }
+  },
+  "graph": {
+    "title": "Story Graph",
+    "relations": "Relations",
+    "plot": "Plot chain",
+    "legendCharacter": "Character",
+    "legendEvent": "Event",
+    "legendChoice": "Choice",
+    "branchesGrown": "{{count}} branches grown",
+    "viewRelation": "Relationship Web",
+    "viewTimeline": "Plot Timeline",
+    "viewBranch": "Enter Points · Tree",
+    "timelineEmpty": "No key nodes in this chapter",
+    "branchEmpty": "No enter points yet",
+    "nodeNoBrief": "No further detail yet",
+    "openEnter": "Go to this enter point · Talk / Branch / Rewrite",
+    "talkTo": "Talk with {{name}}",
+    "timelineEnterTap": "Tap to open this enter point",
+    "optionTap": "Tap to open this enter point and try this fork",
+    "branchTap": "Tap to revisit this branch",
+    "exitFocus": "Exit focus",
+    "tapEmptyToExit": "Tap empty space to exit · drag nodes to rearrange"
+  },
+  "scene": {
+    "crocodile": {
+      "drag": "Drag the capybara across the river",
+      "hint": "Drag the capybara onto the crocodile's back",
+      "landed": "The internet erupts — \"Unknown starlet rides a crocodile\" tops the trends",
+      "tag0": "#CapybaraOnACroc",
+      "tag1": "so unhinged",
+      "tag2": "adopt me please"
+    }
+  },
+  "ambient": {
+    "on": "Ambience · On",
+    "off": "Ambience · Off"
+  },
+  "reason": {
+    "decisionTitle": "Key decision point",
+    "pick": "Make a choice",
+    "verdict": "Historical review",
+    "nodeTip": "Tap a node for details",
+    "share": "Share review card"
+  },
+  "branches": {
+    "title": "My Parallel Endings",
+    "sub": "The parallel paths you grew in each story, gathered into a narrative tree you can revisit.",
+    "empty": "No branches yet. Go back to the shelf and light up a relic to step in.",
+    "kinds": {
+      "dialogue": "Talk",
+      "fork": "Branch",
+      "rewrite": "Rewrite"
+    },
+    "anchor": "Paragraph {{n}}",
+    "share": "Create share card",
+    "publish": "Publish to Hall",
+    "publishing": "Publishing…",
+    "published": "In the Hall",
+    "loginToPublish": "Sign in to publish",
+    "count": "{{n}} parallel paths",
+    "root": "Grown from the original scene",
+    "continued": "Continued from here",
+    "continue": "Play on from here",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "openStory": "Back to story"
+  }
+}

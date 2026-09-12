@@ -1,0 +1,10 @@
+{
+  "route": "reason/[id]",
+  "name": "推理盘",
+  "nav_type": "stack",
+  "parent": "",
+  "order_index": 3,
+  "icon": "swords",
+  "summary": "纪实线知识推理复盘",
+  "preview_route": "reason/yancheng"
+}

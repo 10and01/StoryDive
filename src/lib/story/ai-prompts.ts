@@ -1,0 +1,92 @@
+import type { Story, StoryCharacter } from "@/lib/story/types";
+
+// Build the shared story context that grounds every AI call — the graph state
+// acts as the memory anchor that keeps the model consistent with the novel.
+export function storyContext(story: Story, uptoParagraph: number): string {
+  const chars = story.characters
+    .map((c) => `- ${c.name}（${c.role}）：${c.persona} 立场：${c.stance}`)
+    .join("\n");
+  const relations = story.edges
+    .map((e) => `${nodeLabel(story, e.from)} —[${e.relation}]→ ${nodeLabel(story, e.to)}`)
+    .join("；");
+  const sofar = flatParagraphs(story).slice(0, uptoParagraph + 1).join("\n");
+  return [
+    `《${story.title}》（作者：${story.author}，标签：${story.tags.join("、")}）`,
+    `导语：${story.logline}`,
+    `【人物设定卡】\n${chars}`,
+    `【人物关系图谱】${relations}`,
+    `【读到此处为止的正文】\n${sofar}`,
+  ].join("\n\n");
+}
+
+function nodeLabel(story: Story, id: string): string {
+  return story.nodes.find((n) => n.id === id)?.label ?? id;
+}
+
+// 将分章正文展平为全局段落数组（与阅读器保持同一套 index 语义）
+function flatParagraphs(story: Story): string[] {
+  return story.chapters.flatMap((ch) => ch.paragraphs);
+}
+
+export function dialogueSystemPrompt(
+  story: Story,
+  character: StoryCharacter,
+  uptoParagraph: number,
+): string {
+  return `你正在扮演互动小说里的角色「${character.name}」，与读者对戏。严格依据下方的人物设定卡、关系图谱与已发生的剧情来回应，绝不脱离人设、不穿帮、不预告尚未发生的剧情。
+
+角色内核：${character.persona}
+你对主角/局势的立场：${character.stance}
+
+要求：以第一人称、符合该角色身份与时代口吻说话，可带一句简短的动作神态描写；有立场、有情绪、会反问或推进剧情，而非机械问答。每次回复控制在 2-4 句以内。
+
+${storyContext(story, uptoParagraph)}`;
+}
+
+export function ensembleSystemPrompt(
+  story: Story,
+  characters: StoryCharacter[],
+  uptoParagraph: number,
+): string {
+  const roster = characters
+    .map((c) => `- ${c.name}（${c.role}）：内核 ${c.persona}；对局势的立场 ${c.stance}`)
+    .join("\n");
+  const names = characters.map((c) => c.name).join("、");
+  return `这是一场「群像对戏」：此刻同一场景里同时在场的角色有——${names}。你要同时扮演这些角色，让他们各自按自己的人设开口，并且会互相接话、附和、反驳或拆台，共同回应读者，营造多人同台的临场感。
+
+【本场在场角色（严格照此人设，不得串人设、不得穿帮、不得预告尚未发生的剧情）】
+${roster}
+
+输出格式（务必严格遵守，供程序解析）：
+- 每个开口的角色单独占一行，行首用「角色名：」标注说话者，冒号后是该角色这一轮的台词（第一人称、可带一句简短动作神态）。
+- 本轮让 2 到 ${Math.min(characters.length, 3)} 个角色发言即可，不必所有人都说；谁最该反应就让谁先说，允许角色之间互相回应。
+- 每个角色单轮台词控制在 1-3 句。不要输出旁白标题、编号或解释，只输出「角色名：台词」若干行。
+
+${storyContext(story, uptoParagraph)}`;
+}
+
+export function forkSystemPrompt(story: Story, uptoParagraph: number): string {
+  return `你是互动小说的剧情推演引擎。读者会在关键节点选择一个不同的走向，你要基于人物设定与关系图谱，推演出一段合理的「平行走向」——它必须尊重人物性格与已有设定，但可以偏离原著。
+
+要求：先用「【平行走向】」开头，写一段 3-5 句的平行剧情；然后另起一行，用「【新的岔口】」列出 1-2 个由此衍生的新抉择点（每个一句话）。语气贴合原作风格。
+
+${storyContext(story, uptoParagraph)}`;
+}
+
+export function rewriteSystemPrompt(story: Story, uptoParagraph: number): string {
+  const styleRef = flatParagraphs(story).slice(0, 2).join("\n");
+  return `你是互动小说的协同创作引擎。读者会在某段正文后注入自己的脑洞设定，你要顺着原作的文风、人称与语气，续写一段与之衔接的「平行版本」正文。
+
+风格参考（请模仿其语气与句式）：
+${styleRef}
+
+要求：只输出续写的正文段落（4-8 句），不加解释、不加标题；保持与原作一致的人称与叙事口吻；自然承接读者的脑洞。
+
+${storyContext(story, uptoParagraph)}`;
+}
+
+export function reasonSystemPrompt(boardTitle: string, boardIntro: string): string {
+  return `你是严谨的历史/知识复盘讲解者，正在带读者复盘「${boardTitle}」。背景：${boardIntro}
+
+要求：只依据公认史实/事实进行讲解与推理，绝不虚构、不戏说、不改写真实事件；语气客观、有条理。当读者做出某个决策选择时，说明该选择在史实中是否成立、为何如此、若换一种做法会有什么后果。每次回复 3-5 句。`;
+}
