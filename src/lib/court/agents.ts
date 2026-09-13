@@ -1,4 +1,5 @@
 import { SALT_JUDGE_PERSONA } from "./prompts";
+import { evidenceBlock, type EvidencePool } from "./evidence";
 import type { CourtCaseSeed, Difficulty, Side } from "./types";
 
 // 双 Agent 庭辩引擎：红方故事党「烈盐」vs 蓝方逻辑党「析盐」。
@@ -28,12 +29,32 @@ function leanBoost(side: Side, lean: Side | null): string {
   return `这位观众历来把票投给${leanLabel}——今天你代表${sideLabel}，要把${leanLabel}辩得让他坐不住。`;
 }
 
+// 旁听席画像（「为你而设」）：来自用户画像（知乎创作提炼），增强项可缺省。
+export interface AudienceHint {
+  summary?: string; // 一句话画像
+  keywords?: string[]; // 兴趣关键词
+}
+
+function audienceBlock(audience?: AudienceHint): string {
+  if (!audience?.summary && !audience?.keywords?.length) return "";
+  const parts: string[] = [];
+  if (audience.summary) parts.push(audience.summary);
+  if (audience.keywords?.length) parts.push(`他平时关注：${audience.keywords.join("、")}`);
+  return `【旁听席】第一排坐着一位老观众：${parts.join("；")}。立论与陈词可以贴着他的兴趣举例，让他觉得这场是为他开的——但不要讨好式站队，锋芒依旧。`;
+}
+
 function personaOf(side: Side): string {
   return side === "red" ? STORY_AGENT_PERSONA : LOGIC_AGENT_PERSONA;
 }
 
 // 立论：各自 Agent 依据案由提出己方旗号与立论，输出严格 JSON。
-export function claimSystemPrompt(side: Side, difficulty: Difficulty, lean: Side | null): string {
+export function claimSystemPrompt(
+  side: Side,
+  difficulty: Difficulty,
+  lean: Side | null,
+  evidence?: EvidencePool,
+  audience?: AudienceHint,
+): string {
   const who = side === "red" ? "红方" : "蓝方";
   return `${personaOf(side)}
 
@@ -41,11 +62,14 @@ export function claimSystemPrompt(side: Side, difficulty: Difficulty, lean: Side
 
 ${DIFFICULTY_SPEC[difficulty]}
 ${leanBoost(side, lean)}
+${audienceBlock(audience)}
+${evidence ? evidenceBlock(evidence, side) : ""}
 
 严格要求：
 - 只输出一个 JSON 对象：{"headline": "一句话旗号", "argument": "立论正文，3-4 句"}。
 - 不要 markdown 代码块围栏，不要解释。
 - 立场真正对立且站得住，有锋芒、不说教。
+- 有证据块时，立论正文里至少自然引用 1 条，格式为在句中或句末标注 [编号]；没有证据块时不要凭空造编号。
 - 全部文案用简体中文，台词与引用一律使用中文弯引号“”。`;
 }
 
@@ -59,25 +83,35 @@ export function claimUserPrompt(seed: CourtCaseSeed, side: Side): string {
 }
 
 // 开庭陈词：盐官交代案情与两难（不影响两造各自的立论生成）。
-export function briefSystemPrompt(difficulty: Difficulty): string {
+export function briefSystemPrompt(
+  difficulty: Difficulty,
+  audience?: AudienceHint,
+): string {
   return `${SALT_JUDGE_PERSONA}
 
 任务：为下面的案由写一段开庭陈词（2-3 句）：交代案情与两难，末句邀请观众听完两造交锋再做判断。
 ${DIFFICULTY_SPEC[difficulty]}
+${audienceBlock(audience)}
 
 只输出陈词本身，不要任何前缀与解释。简体中文。`;
 }
 
 // 回合发言：看到对方全部已出口的话后，做真实的逐轮回应。
-export function rebutSystemPrompt(side: Side, difficulty: Difficulty, lean: Side | null): string {
+export function rebutSystemPrompt(
+  side: Side,
+  difficulty: Difficulty,
+  lean: Side | null,
+  evidence?: EvidencePool,
+): string {
   const who = side === "red" ? "红方" : "蓝方";
   return `${personaOf(side)}
 
 你现在是${who}辩手，正在回合交锋中。
 ${DIFFICULTY_SPEC[difficulty]}
 ${leanBoost(side, lean)}
+${evidence ? evidenceBlock(evidence, side) : ""}
 
-要求：直接回应对方最新一条发言（抓它最弱的一点打），可顺带巩固己方论点；1-2 句、不超过 60 字；不要自我重复，不要客套，不要总结陈词。只输出你的发言本身，简体中文。`;
+要求：直接回应对方最新一条发言（抓它最弱的一点打），可顺带巩固己方论点；1-2 句、不超过 60 字；有证据块时可自然引用 1 条并标注 [编号]，没有证据块时不要凭空造编号；不要自我重复，不要客套，不要总结陈词。只输出你的发言本身，简体中文。`;
 }
 
 export interface RebutContext {

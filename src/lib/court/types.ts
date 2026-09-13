@@ -56,6 +56,20 @@ export interface CourtDuel {
   red: CourtClaim;
   blue: CourtClaim;
   verdictHint: string;
+  // ——论据战扩展（推荐案由/证据管线不可用时均可缺省）——
+  questionUrl?: string; // 推荐案由来源的真实知乎问题（「深挖这个问题」入口）
+  evidence?: EvidenceItem[]; // 全局编号证据池，前端渲染 [n] 引用 chip
+  personalized?: boolean; // 是否已按该观众画像定制（「为你而设」标识）
+}
+
+// 论据战证据：一条真实知乎回答的摘要 + 链接，全局编号对应发言里的 [n] 标注。
+// 摘要来自 question_answers 服务端摘要；赞同数是站内搜索交叉标注（匹配不上则缺省）。
+export interface EvidenceItem {
+  n: number; // 全局编号（从 1 起）
+  url: string;
+  summary: string;
+  voteUpCount?: number;
+  kind: "emotion" | "logic"; // 情感池 / 数据池（烈盐 / 析盐 各取一池）
 }
 
 // 观众历史画像：由 court_votes 聚合，驱动难度与立场钩子

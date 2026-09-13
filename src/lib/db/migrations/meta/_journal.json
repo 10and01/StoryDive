@@ -8,6 +8,13 @@
       "when": 1789197324617,
       "tag": "0000_spooky_zaladane",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789285043611,
+      "tag": "0001_fixed_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

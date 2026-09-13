@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../client";
-import { courtVotes } from "../schema/court";
+import { courtCases, courtVotes } from "../schema/court";
+import type { CourtCaseRow } from "../schema/court";
 import type { CourtProfile } from "@/lib/court/types";
 
 export interface CourtTally {
@@ -98,4 +99,79 @@ export async function castVote(
       .onConflictDoNothing();
   }
   return tallyCase(caseId, userId);
+}
+
+// —— 全站每日一题（court_cases）——
+
+// 按天取当日案由行；表未迁移等异常返回 null（调用方走解析链重建）。
+export async function getDailyCaseRow(date: string): Promise<CourtCaseRow | null> {
+  try {
+    const rows = await db
+      .select()
+      .from(courtCases)
+      .where(eq(courtCases.date, date))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (error) {
+    console.error("[court/queries] getDailyCaseRow failed:", error);
+    return null;
+  }
+}
+
+// 按 caseId 取案由行（rebut 注入证据用；caseId 全局唯一按天）。
+export async function getCaseRowByCaseId(caseId: string): Promise<CourtCaseRow | null> {
+  try {
+    const rows = await db
+      .select()
+      .from(courtCases)
+      .where(eq(courtCases.caseId, caseId))
+      .limit(1);
+    return rows[0] ?? null;
+  } catch (error) {
+    console.error("[court/queries] getCaseRowByCaseId failed:", error);
+    return null;
+  }
+}
+
+// 落库/更新当日案由（幂等：按天主键 upsert）。
+export async function upsertDailyCase(row: {
+  date: string;
+  caseId: string;
+  source: string;
+  questionUrl?: string | null;
+  caseTitle: string;
+  brief?: string | null;
+  redAngle?: string | null;
+  blueAngle?: string | null;
+  tagsJson?: string | null;
+  evidenceJson?: string | null;
+}): Promise<void> {
+  await db
+    .insert(courtCases)
+    .values({
+      date: row.date,
+      caseId: row.caseId,
+      source: row.source,
+      questionUrl: row.questionUrl ?? null,
+      caseTitle: row.caseTitle,
+      brief: row.brief ?? null,
+      redAngle: row.redAngle ?? null,
+      blueAngle: row.blueAngle ?? null,
+      tagsJson: row.tagsJson ?? null,
+      evidenceJson: row.evidenceJson ?? null,
+    })
+    .onConflictDoUpdate({
+      target: courtCases.date,
+      set: {
+        caseId: row.caseId,
+        source: row.source,
+        questionUrl: row.questionUrl ?? null,
+        caseTitle: row.caseTitle,
+        brief: row.brief ?? null,
+        redAngle: row.redAngle ?? null,
+        blueAngle: row.blueAngle ?? null,
+        tagsJson: row.tagsJson ?? null,
+        evidenceJson: row.evidenceJson ?? null,
+      },
+    });
 }

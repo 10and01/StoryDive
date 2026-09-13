@@ -13,12 +13,15 @@ import {
   Flame,
   CalendarDays,
   Trophy,
+  GraduationCap,
+  History,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
 import { fetchTheaterPlay } from "@/lib/api/theater";
 import { LoginGate } from "@/components/user-profile/login-gate";
 import { publishToWorkshop } from "@/lib/api/workshop";
+import { CustomTheaterModal } from "@/components/story/theater-custom";
 import type {
   TheaterPlay,
   TheaterStep,
@@ -62,6 +65,8 @@ export function Theater() {
   const { t } = useTranslation();
   const { user, login } = useUser();
   const [play, setPlay] = useState<TheaterPlay | null>(null);
+  const [dailyPlay, setDailyPlay] = useState<TheaterPlay | null>(null); // 今日热榜局（定制局可切回）
+  const [customOpen, setCustomOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState<string>(""); // 当前 step/ending id
   const [trail, setTrail] = useState<string[]>([]); // 选择足迹（选项文案）
@@ -81,6 +86,7 @@ export function Theater() {
     try {
       const p = await fetchTheaterPlay();
       setPlay(p);
+      setDailyPlay(p);
       setCursor(p.start);
       setTrail([]);
     } catch {
@@ -115,8 +121,31 @@ export function Theater() {
           <Sparkles className="h-7 w-7 text-[color:var(--primary)]" />
           {t("theater.title")}
         </h1>
-        <p className="mt-1 font-heading text-sm text-[#d9ca9b]">
-          {t("theater.subtitle")}
+        <p className="mt-1 flex flex-wrap items-center gap-2 font-heading text-sm text-[#d9ca9b]">
+          <span>{t("theater.subtitle")}</span>
+          {play && dailyPlay && play.id !== dailyPlay.id && (
+            <button
+              onClick={() => {
+                if (!dailyPlay) return;
+                setPlay(dailyPlay);
+                setCursor(dailyPlay.start);
+                setTrail([]);
+              }}
+              className="inline-flex items-center gap-1 border border-[color:var(--primary)]/50 px-2 py-0.5 text-[11px] text-[color:var(--primary)]"
+              data-el="theater-back-daily"
+            >
+              <History className="h-3 w-3" />
+              {t("theater.backToDaily")}
+            </button>
+          )}
+          <button
+            onClick={() => setCustomOpen(true)}
+            className="inline-flex items-center gap-1 border border-[color:var(--primary)]/50 px-2 py-0.5 text-[11px] text-[color:var(--primary)]"
+            data-el="theater-custom-entry"
+          >
+            <GraduationCap className="h-3 w-3" />
+            {t("theater.customEntry")}
+          </button>
         </p>
       </header>
 
@@ -215,6 +244,18 @@ export function Theater() {
           )}
         </div>
       )}
+
+      {/* 知识库 RAG 定制剧场：上传长文/论文 → 多结局学习剧场 */}
+      <CustomTheaterModal
+        open={customOpen}
+        onClose={() => setCustomOpen(false)}
+        onPlay={(p) => {
+          setPlay(p);
+          setCursor(p.start);
+          setTrail([]);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }}
+      />
     </AppShell>
   );
 }

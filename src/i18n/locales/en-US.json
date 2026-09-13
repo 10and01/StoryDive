@@ -54,6 +54,12 @@
     "sideBlue": "Blue",
     "agentTitleRed": "Story Zealot",
     "agentTitleBlue": "Logic Zealot",
+    "personalized": "Made for you",
+    "evidenceLabel": "Evidence · real Zhihu answers",
+    "deepDive": "Deep-dive this question with Kanshan",
+    "deepDiveLoading": "Kanshan is digging through the answers…",
+    "deepDiveFailed": "Can't dig into this one right now — try later",
+    "deepDiveTitle": "Kanshan deep-dive · answer highlights",
     "turnRed": "Lie Yan is brewing a counter…",
     "turnBlue": "Xi Yan is deducing…",
     "idea": {
@@ -70,6 +76,22 @@
   "theater": {
     "title": "Salt Spirit Theater",
     "subtitle": "The Salt Spirit turns a trending topic into a branching micro-play — fresh every day",
+    "customEntry": "Custom play",
+    "backToDaily": "Back to today's play",
+    "customTitle": "Knowledge Theater · from your own material",
+    "customDesc": "Upload a long article or paper — or paste notes — and the Salt Spirit adapts it into a multi-ending learning play where each ending reviews key knowledge points.",
+    "customTab": { "text": "Paste text", "file": "Upload file" },
+    "customTextPlaceholder": "Paste the material to adapt (under 5,000 chars stays in-app, never uploaded to Zhihu)…",
+    "customFileLabel": "Choose a file (md / txt / pdf, ≤20MB)",
+    "customHintLabel": "Theme hint (optional, e.g. “game theory, chapter 5”)",
+    "customDisclaimer": "I understand materials over 5,000 chars will be stored in the Zhihu knowledge base (no deletion API yet) for this play's retrieval.",
+    "customGenerate": "Generate the play",
+    "customGenerating": "The Salt Spirit is reading and staging…",
+    "customPolling": "Zhihu is parsing the file — hang tight…",
+    "customTooLarge": "File exceeds 20MB — split it and try again",
+    "customNeedDisclaimer": "Please tick the consent note first",
+    "customNoMaterial": "Paste text or choose a file first",
+    "customFailed": "Generation failed — try different material or later",
     "summoning": "The Salt Spirit is staging today's topic…",
     "failed": "Failed to summon a play. Try again?",
     "retry": "Summon again",
@@ -211,10 +233,17 @@
         "ensembleThinking": "The room is talking over each other…",
         "ensemblePlaceholder": "Say something to everyone present…",
         "ensembleKeep": "Keep this ensemble branch",
-        "ensembleTitle": "An ensemble scene"
+        "ensembleTitle": "An ensemble scene",
+        "shadow": "Invite shadows",
+        "shadowHint": "People you follow join as “shadow guests”, imagined by AI (not the real persons)",
+        "shadowPick": "Pick 1-2 shadows to join",
+        "shadowEmpty": "No shadows yet — sync your Zhihu profile (with follow-list consent) from the avatar menu first",
+        "shadowOnStage": "Shadow guests: {{names}}"
       },
       "grounded": "Cite Zhihu",
-      "groundedHint": "When on, {{name}} weaves real high-vote Zhihu answers into the reply"
+      "groundedHint": "When on, {{name}} weaves real high-vote Zhihu answers into the reply",
+      "soul": "Zhihu soul",
+      "soulHint": "When on, {{name}} can “see” the answers you've written on Zhihu — and may call out your soul"
     },
     "fork": {
       "title": "Branch here",
@@ -305,6 +334,29 @@
     "gateDesc": "Guests can browse the shelf and read stories freely. Dialogue, branching, rewriting, theater and court require a Zhihu account.",
     "gateCta": "Sign in with Zhihu",
     "gateComingSoon": "Zhihu sign-in is coming soon"
+  },
+  "citations": {
+    "realAnswer": "Real Zhihu answer",
+    "viewOriginal": "View original answer"
+  },
+  "profileSync": {
+    "entry": "Sync my Zhihu profile",
+    "title": "Write your Zhihu into the story",
+    "consentTitle": "What we access",
+    "consentBody": "With your consent we read your public Zhihu creations (titles & summaries only, top 20 by upvotes) and distill them with AI into an interest profile and “precedent cards” — story characters can quote your answers, and the court verdicts remember your stance. We store only the distilled result, never full answers or credentials, and you can wipe it anytime.",
+    "agreeButton": "Agree & sync",
+    "reauth": "Your Zhihu authorization has expired — sign in again to keep syncing.",
+    "reauthButton": "Sign in to Zhihu again",
+    "syncedLine": "{{n}} creations synced · {{time}}",
+    "followeesOptIn": "Also authorize my follow list (public info only, powers “shadow NPCs”)",
+    "followeesLine": "{{n}} followees synced (shadow cards)",
+    "resync": "Sync again",
+    "clear": "Wipe profile",
+    "tone": "Voice",
+    "error": {
+      "consent": "Please agree to the terms first",
+      "failed": "Sync failed — try again later"
+    }
   },
   "companion": {
     "fab": "Liu Kanshan companion",

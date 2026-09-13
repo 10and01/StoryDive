@@ -54,6 +54,12 @@
     "sideBlue": "蓝方",
     "agentTitleRed": "故事党",
     "agentTitleBlue": "逻辑党",
+    "personalized": "为你而设",
+    "evidenceLabel": "论据 · 知乎真实回答",
+    "deepDive": "看山深挖这个问题",
+    "deepDiveLoading": "看山正在翻这个问题下的回答…",
+    "deepDiveFailed": "这个问题暂时挖不动，过会再试",
+    "deepDiveTitle": "看山深挖 · 回答精华",
     "turnRed": "烈盐 正在酝酿反击…",
     "turnBlue": "析盐 正在推演逻辑…",
     "idea": {
@@ -70,6 +76,22 @@
   "theater": {
     "title": "盐灵剧场",
     "subtitle": "盐灵把热点话题变成一局多结局微剧场，每天都在长",
+    "customEntry": "定制剧场",
+    "backToDaily": "回到今日剧场",
+    "customTitle": "知识剧场 · 用你的材料开一局",
+    "customDesc": "上传一篇长文/论文，或直接粘贴笔记，盐灵把它改编成一局多结局学习剧场——结局就是知识点复盘。",
+    "customTab": { "text": "粘贴文本", "file": "上传文件" },
+    "customTextPlaceholder": "粘贴你想改编的学习材料（少于 5000 字只在本应用内处理，不会上传知乎）…",
+    "customFileLabel": "选择文件（md / txt / pdf，≤20MB）",
+    "customHintLabel": "主题提示（可选，如「第五章的博弈论」）",
+    "customDisclaimer": "我知道超过 5000 字的材料会被存入知乎知识库（平台暂无删除接口），用于本局的检索生成。",
+    "customGenerate": "生成剧场",
+    "customGenerating": "盐灵正在读材料、编剧场…",
+    "customPolling": "知乎正在解析文件，稍等片刻…",
+    "customTooLarge": "文件超过 20MB，请拆分后再传",
+    "customNeedDisclaimer": "请先勾选授权声明",
+    "customNoMaterial": "请先粘贴文本或选择文件",
+    "customFailed": "生成失败了，换个材料或稍后再试",
     "summoning": "盐灵正在把今天的话题搬上台…",
     "failed": "召唤剧场失败了，再试一次？",
     "retry": "重新召唤",
@@ -211,10 +233,17 @@
         "ensembleThinking": "众人正在你一言我一语…",
         "ensemblePlaceholder": "对在场众人说点什么…",
         "ensembleKeep": "并入这条群像支线",
-        "ensembleTitle": "一场群像对戏"
+        "ensembleTitle": "一场群像对戏",
+        "shadow": "邀请影子",
+        "shadowHint": "你关注的人将以「影子客人」身份入席，由 AI 想象演绎（非本人发言）",
+        "shadowPick": "选 1-2 位影子入席",
+        "shadowEmpty": "还没有影子——先在头像菜单「同步我的知乎画像」里勾选关注列表授权",
+        "shadowOnStage": "影子客人：{{names}}"
       },
       "grounded": "引经据典",
-      "groundedHint": "开启后，{{name}}会化用知乎上的真实高赞回答来回应你"
+      "groundedHint": "开启后，{{name}}会化用知乎上的真实高赞回答来回应你",
+      "soul": "知乎灵魂",
+      "soulHint": "开启后，{{name}}会“看见”你写过的知乎回答——TA 可能点破你灵魂里的东西"
     },
     "fork": {
       "title": "在此分叉",
@@ -305,6 +334,29 @@
     "gateDesc": "游客可自由浏览书架与阅读故事；对戏、分叉、改写、剧场、法庭等完整体验需登录知乎账号。",
     "gateCta": "知乎登录",
     "gateComingSoon": "知乎登录即将开放，敬请期待"
+  },
+  "citations": {
+    "realAnswer": "知乎真实回答",
+    "viewOriginal": "查看原回答"
+  },
+  "profileSync": {
+    "entry": "同步我的知乎画像",
+    "title": "把你的知乎写进入局",
+    "consentTitle": "授权说明",
+    "consentBody": "经你授权，我们将读取你在知乎的公开创作（仅标题与摘要，按赞同数取前 20 条），由 AI 提炼成兴趣画像与「判例卡」——对戏里的角色可以引用你的回答，法庭的判词会记得你的立场。只存提炼结果，不存回答原文与凭证，随时可一键清除。",
+    "agreeButton": "同意并同步",
+    "reauth": "知乎授权已过期，重新登录后即可继续同步。",
+    "reauthButton": "重新登录知乎",
+    "syncedLine": "已同步 {{n}} 条创作 · {{time}}",
+    "followeesOptIn": "同时授权关注列表（仅公开资料，供「影子 NPC」演绎）",
+    "followeesLine": "已同步 {{n}} 位关注的人（影子卡）",
+    "resync": "重新同步",
+    "clear": "清除画像",
+    "tone": "说话的味儿",
+    "error": {
+      "consent": "请先同意授权说明",
+      "failed": "同步失败，稍后再试"
+    }
   },
   "companion": {
     "fab": "刘看山伴读",

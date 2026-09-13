@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { appAi, AppAIUnavailableError, APP_AI_UNAVAILABLE_MESSAGE } from "@/lib/ai-client";
+import { loadConsentedCards, cardsBlock } from "@/lib/profile/cards";
 
 // POST /api/court/idea  判决书 → 知乎原生「想法」文案（登录必需）。
 // 知乎开放平台当前没有发布/存草稿接口，这里生成可直接粘贴发布的原生文案：
 // 话题标签 + 判决张力 + 钩子提问 + 站点链接，形成内容回流闭环。
+// 观众同步过判例卡时，文案可用「作为一个写过……的人」的自指口吻增强真实感。
 
 function ideaSystemPrompt(): string {
   return `你是「盐官」，名场面法庭的说书人兼裁判。任务：把一场庭审的判决书写成一条可以直接发布到知乎「想法」的文案。
@@ -36,6 +38,17 @@ export async function POST(request: NextRequest) {
   const verdict = typeof body.verdict === "string" ? body.verdict.slice(0, 300) : "";
   const link = `${request.nextUrl.origin}/court`;
 
+  // 判例卡（授权过的知乎回答）：文案可自然自指，读不到就跳过
+  let soulHint = "";
+  try {
+    const cards = await loadConsentedCards(auth.user.id);
+    if (cards.length > 0) {
+      soulHint = `\n\n${cardsBlock(cards)}\n文案里可以用一句「作为一个写过……的人」的自指口吻（化用上面真实回答的题目），增强真实感；不相关就略过。`;
+    }
+  } catch {
+    // 判例卡读取失败不拦想法
+  }
+
   try {
     const result = await appAi.chat({
       messages: [
@@ -48,7 +61,7 @@ export async function POST(request: NextRequest) {
             `蓝方旗号：${blueHeadline}（${b} 票）`,
             `盐官判词：${verdict || "（观众未留判词，自行提炼一句）"}`,
             `需要附上的链接：${link}`,
-          ].join("\n"),
+          ].join("\n") + soulHint,
         },
       ],
       viewer_user_id: auth.user.id,

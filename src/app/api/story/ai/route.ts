@@ -10,9 +10,14 @@ import {
   rewriteSystemPrompt,
   reasonSystemPrompt,
   groundingBlock,
+  soulBlock,
+  type ShadowActor,
 } from "@/lib/story/ai-prompts";
 import { hasZhihuSecret } from "@/lib/zhihu/client";
 import { zhihuSearch, type ZhihuSearchHit } from "@/lib/zhihu/search";
+import { loadConsentedCards } from "@/lib/profile/cards";
+import type { UserContentCard } from "@/lib/profile/types";
+import type { ZhihuCitation } from "@/lib/api/zhihu-citation";
 
 type Mode = "dialogue" | "ensemble" | "fork" | "rewrite" | "reason";
 
@@ -26,6 +31,34 @@ interface AiBody {
   choice?: string;
   // dialogue 专用「引经据典」：检索知乎站内真实回答注入 prompt，回复可化用并标 [n]
   grounding?: boolean;
+  // dialogue 专用「知乎灵魂」：把读者本人授权的知乎回答注入 prompt（角色可点破）
+  soul?: boolean;
+  // ensemble 专用「影子客人」：读者关注列表里的真人（公开资料），AI 想象演绎
+  shadows?: { name?: string; headline?: string }[];
+}
+
+function sanitizeShadows(raw: unknown): ShadowActor[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((s) => (typeof s === "object" && s !== null ? (s as Record<string, unknown>) : {}))
+    .filter((s) => typeof s.name === "string" && s.name.trim())
+    .slice(0, 3)
+    .map((s) => ({
+      name: (s.name as string).trim().slice(0, 20),
+      headline: typeof s.headline === "string" ? s.headline.trim().slice(0, 60) : undefined,
+    }));
+}
+
+// 判例卡 → 引用 chip 数据（对戏里角色点破「你自己也写过…」时可展开验证）。
+function soulCitations(cards: UserContentCard[], startN: number): ZhihuCitation[] {
+  return cards.map((c, i) => ({
+    n: startN + i,
+    title: c.title,
+    contentText: c.summary,
+    url: c.url,
+    voteUpCount: c.likeCount,
+    authorName: "你 · 知乎创作",
+  }));
 }
 
 export async function POST(request: NextRequest) {
@@ -41,8 +74,8 @@ export async function POST(request: NextRequest) {
   const upto = Math.max(0, body.anchorParagraph ?? 0);
   let system = "";
   let userMsg = "";
-  // 「引经据典」命中的真实回答（随响应返回，供前端渲染引用 chip）
-  let citations: ZhihuSearchHit[] = [];
+  // 「引经据典」+「知乎灵魂」命中的真实回答（随响应返回，供前端渲染引用 chip）
+  const citations: ZhihuCitation[] = [];
 
   if (mode === "reason") {
     const board = getReasonBoard(storyId);
@@ -63,9 +96,16 @@ export async function POST(request: NextRequest) {
       system = dialogueSystemPrompt(story, character, upto);
       userMsg = body.userText ?? "（读者沉默地看着你）";
       if (body.grounding && hasZhihuSecret()) {
-        const hits = await zhihuSearch(userMsg, 3);
+        const hits: ZhihuSearchHit[] = await zhihuSearch(userMsg, 3);
         system += groundingBlock(hits);
-        citations = hits;
+        citations.push(...hits);
+      }
+      if (body.soul) {
+        const cards = await loadConsentedCards(auth.user.id);
+        if (cards.length > 0) {
+          system += soulBlock(cards, citations.length + 1);
+          citations.push(...soulCitations(cards, citations.length + 1));
+        }
       }
     } else if (mode === "ensemble") {
       const ids = Array.isArray(body.characterIds) ? body.characterIds : [];
@@ -76,7 +116,8 @@ export async function POST(request: NextRequest) {
           { status: 400 },
         );
       }
-      system = ensembleSystemPrompt(story, cast, upto);
+      const shadows = sanitizeShadows(body.shadows);
+      system = ensembleSystemPrompt(story, cast, upto, shadows);
       userMsg = body.userText ?? "（读者环视在场众人，没有说话）";
     } else if (mode === "fork") {
       system = forkSystemPrompt(story, upto);

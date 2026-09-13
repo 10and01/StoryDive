@@ -16,6 +16,8 @@ import {
   Swords,
   ChevronDown,
   Megaphone,
+  Sparkles,
+  Search,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
@@ -26,11 +28,14 @@ import {
   fetchTally,
   castCourtVote,
   fetchVerdict,
+  deepDiveQuestion,
   type CourtTally,
+  type ZhihuCitation,
 } from "@/lib/api/court";
-import type { CourtDuel, CourtProfile, Side } from "@/lib/court/types";
+import type { CourtDuel, CourtProfile, EvidenceItem, Side } from "@/lib/court/types";
 import { COURT_AGENTS } from "@/lib/court/types";
 import { CourtVerdictModal } from "@/components/story/court-verdict-modal";
+import { ZhihuCitations } from "@/components/story/zhihu-citations";
 import { cn } from "@/utils/utils";
 
 const TOTAL_ROUNDS = 3;
@@ -38,6 +43,30 @@ const TOTAL_ROUNDS = 3;
 interface RoundLine {
   side: Side;
   text: string;
+}
+
+// 从发言文本里抠出引用编号 [n]，映射成可展开的引用卡（论据战可验证）。
+function citedCitations(text: string, evidence?: EvidenceItem[]): ZhihuCitation[] {
+  if (!evidence || evidence.length === 0) return [];
+  const ns = new Set<number>();
+  for (const m of text.matchAll(/\[(\d{1,2})\]/g)) {
+    const n = Number(m[1]);
+    if (evidence.some((e) => e.n === n)) ns.add(n);
+  }
+  return [...ns]
+    .sort((a, b) => a - b)
+    .map((n) => {
+      const e = evidence.find((x) => x.n === n)!;
+      return {
+        n,
+        title:
+          e.summary.length > 20 ? `${e.summary.slice(0, 20)}…` : e.summary,
+        contentText: e.summary,
+        url: e.url,
+        voteUpCount: e.voteUpCount ?? 0,
+        authorName: "知乎",
+      };
+    });
 }
 
 export function Court() {
@@ -90,6 +119,7 @@ export function Court() {
     if (!duel || pendingSide || transcript.length >= TOTAL_ROUNDS * 2) return;
     const roundNo = Math.floor(transcript.length / 2) + 1;
     const base = {
+      caseId: duel.id,
       caseTitle: duel.caseTitle,
       brief: duel.brief,
       redHeadline: duel.red.headline,
@@ -217,11 +247,20 @@ export function Court() {
         </div>
       ) : (
         <div className="space-y-4" data-el="court-trial">
-          {/* 案由 + 盐官开庭陈词 */}
+          {/* 案由 + 盐官开庭陈词（+ 论据战：看山深挖入口） */}
           <div className="border border-[color:var(--border)] bg-[#211f18] p-3.5">
             <div className="mb-1 flex items-center gap-1.5 text-[11px] tracking-[0.12em] text-[color:var(--primary)]">
               <Gavel className="h-3.5 w-3.5" />
               {t("court.caseLabel")}
+              {duel.personalized && (
+                <span
+                  className="ml-auto inline-flex items-center gap-1 border border-[#d9ca9b]/50 px-1.5 py-0.5 text-[10px] text-[#d9ca9b]"
+                  data-el="court-personalized"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  {t("court.personalized")}
+                </span>
+              )}
             </div>
             <p className="font-heading text-lg leading-snug text-[#f2ead0]">
               {duel.caseTitle}
@@ -229,12 +268,17 @@ export function Court() {
             <p className="mt-1.5 text-[13px] leading-relaxed text-[#d9ca9b]">
               {duel.brief}
             </p>
+            <DeepDivePanel
+              questionUrl={duel.questionUrl}
+              topic={duel.caseTitle}
+              evidenceCount={duel.evidence?.length ?? 0}
+            />
           </div>
 
           {/* 烈盐 / 析盐 各自立论 */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ClaimCard side="red" headline={duel.red.headline} argument={duel.red.argument} />
-            <ClaimCard side="blue" headline={duel.blue.headline} argument={duel.blue.argument} />
+            <ClaimCard side="red" headline={duel.red.headline} argument={duel.red.argument} evidence={duel.evidence} />
+            <ClaimCard side="blue" headline={duel.blue.headline} argument={duel.blue.argument} evidence={duel.evidence} />
           </div>
 
           {/* 逐轮交锋：每回合红→蓝实时生成 */}
@@ -250,6 +294,7 @@ export function Court() {
                   line={line}
                   roundNo={Math.floor(i / 2) + 1}
                   showRound={line.side === "red"}
+                  evidence={duel.evidence}
                 />
               ))}
               {pendingSide && (
@@ -390,14 +435,17 @@ function RoundLineView({
   line,
   roundNo,
   showRound,
+  evidence,
 }: {
   line: RoundLine;
   roundNo: number;
   showRound: boolean;
+  evidence?: EvidenceItem[];
 }) {
   const { t } = useTranslation();
   const name = agentNameOf(line.side);
   const isRed = line.side === "red";
+  const citations = citedCitations(line.text, evidence);
   return (
     <div className="flex items-start gap-2" data-el={`court-line-${line.side}`}>
       <AgentAvatar side={line.side} name={name} size={24} />
@@ -417,6 +465,9 @@ function RoundLineView({
         >
           {line.text}
         </p>
+        {citations.length > 0 && (
+          <ZhihuCitations items={citations} label={t("court.evidenceLabel")} />
+        )}
       </div>
     </div>
   );
@@ -426,14 +477,17 @@ function ClaimCard({
   side,
   headline,
   argument,
+  evidence,
 }: {
   side: "red" | "blue";
   headline: string;
   argument: string;
+  evidence?: EvidenceItem[];
 }) {
   const { t } = useTranslation();
   const isRed = side === "red";
   const name = agentNameOf(side);
+  const citations = citedCitations(argument, evidence);
   return (
     <div
       className={`border p-3 ${
@@ -450,6 +504,77 @@ function ClaimCard({
       </div>
       <h3 className="font-heading text-base leading-snug text-[#f2ead0]">{headline}</h3>
       <p className="mt-1.5 text-[13px] leading-relaxed text-[#dcd0a6]">{argument}</p>
+      {citations.length > 0 && (
+        <ZhihuCitations items={citations} label={t("court.evidenceLabel")} />
+      )}
+    </div>
+  );
+}
+
+// 看山「深挖这个问题」：把当日辩题下的真实知乎回答挖开看（论据战的可验证面）。
+function DeepDivePanel({
+  questionUrl,
+  topic,
+  evidenceCount,
+}: {
+  questionUrl?: string;
+  topic: string;
+  evidenceCount: number;
+}) {
+  const { t } = useTranslation();
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [reply, setReply] = useState("");
+  const [citations, setCitations] = useState<ZhihuCitation[]>([]);
+
+  if (state === "idle" && evidenceCount === 0 && !questionUrl) return null;
+
+  async function run() {
+    setState("loading");
+    try {
+      const data = await deepDiveQuestion({ questionUrl, topic });
+      if (!data.reply) {
+        setState("error");
+        return;
+      }
+      setReply(data.reply);
+      setCitations(data.citations ?? []);
+      setState("done");
+    } catch {
+      setState("error");
+    }
+  }
+
+  return (
+    <div className="mt-2.5" data-el="court-deepdive">
+      {state === "idle" && (
+        <button
+          onClick={() => void run()}
+          className="inline-flex items-center gap-1.5 border border-[color:var(--primary)]/50 px-2.5 py-1.5 text-[11px] text-[color:var(--primary)] transition-colors hover:bg-[color:var(--primary)]/10"
+        >
+          <Search className="h-3 w-3" />
+          {t("court.deepDive")}
+        </button>
+      )}
+      {state === "loading" && (
+        <p className="flex items-center gap-1.5 text-[11px] italic text-[color:var(--muted-foreground)]">
+          <Loader2 className="h-3 w-3 animate-spin text-[color:var(--primary)]" />
+          {t("court.deepDiveLoading")}
+        </p>
+      )}
+      {state === "error" && (
+        <p className="text-[11px] text-[color:var(--muted-foreground)]">
+          {t("court.deepDiveFailed")}
+        </p>
+      )}
+      {state === "done" && (
+        <div className="border border-[color:var(--primary)]/30 bg-[#1c1b15] p-2.5">
+          <p className="mb-1 text-[10px] tracking-[0.12em] text-[color:var(--primary)]">
+            {t("court.deepDiveTitle")}
+          </p>
+          <p className="text-[12px] leading-relaxed text-[#dcd0a6]">{reply}</p>
+          <ZhihuCitations items={citations} label={t("court.evidenceLabel")} />
+        </div>
+      )}
     </div>
   );
 }

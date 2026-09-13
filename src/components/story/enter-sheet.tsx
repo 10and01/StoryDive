@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Send, Sparkles, Bookmark, Check, LogIn, Users, Quote } from "lucide-react";
+import { X, Send, Sparkles, Bookmark, Check, LogIn, Users, Quote, Feather, Ghost } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Story, EnterPoint, BranchKind } from "@/lib/story/types";
 import { useBranches } from "./branch-store";
 import { generateStoryAi, generateStoryAiDetail } from "@/lib/api/story";
+import { fetchSyncStatus, type FolloweeCardDTO } from "@/lib/api/user-sync";
 import type { ZhihuCitation } from "@/lib/api/zhihu-citation";
 import { ZhihuCitations } from "./zhihu-citations";
 import { cn } from "@/utils/utils";
@@ -33,7 +34,7 @@ interface EnsembleLine {
 // 把「角色名：台词」格式的多行回复解析成按角色归属的分条；解析不出说话者时整段兜底。
 function parseEnsemble(
   raw: string,
-  cast: Story["characters"],
+  cast: Array<{ id: string; name: string; portrait?: string }>,
 ): EnsembleLine[] {
   const lines = raw
     .split(/\n+/)
@@ -41,7 +42,7 @@ function parseEnsemble(
     .filter(Boolean);
   const out: EnsembleLine[] = [];
   for (const line of lines) {
-    const m = line.match(/^([^：:]{1,12})[：:]\s*(.+)$/);
+    const m = line.match(/^([^：:]{1,16})[：:]\s*(.+)$/);
     if (m) {
       const spoken = m[1].trim();
       const c =
@@ -308,7 +309,37 @@ function DialogueMode({
   const [kept, setKept] = useState(false);
   // 「引经据典」：开启后角色会化用知乎站内真实高赞回答（[n] 编号 → 引用 chip）
   const [grounded, setGrounded] = useState(false);
+  // 「知乎灵魂」：开启后角色能“看见”读者自己授权同步的知乎回答（可点破）
+  const [soulOn, setSoulOn] = useState(false);
+  const [hasSoulCards, setHasSoulCards] = useState(false);
+  // 「影子客人」：群像同台时，关注列表里的人（公开资料）由 AI 想象演绎入席
+  const [shadowOn, setShadowOn] = useState(false);
+  const [shadowPool, setShadowPool] = useState<FolloweeCardDTO[]>([]);
+  const [shadowSel, setShadowSel] = useState<string[]>([]);
   const character = present.find((c) => c.id === charId) ?? present[0];
+
+  // 画像同步状态（判例卡可用性 + 影子卡池）：面板挂载时拉一次即可
+  useEffect(() => {
+    let cancelled = false;
+    void fetchSyncStatus().then((s) => {
+      if (cancelled) return;
+      setHasSoulCards(Boolean(s?.hasCards));
+      setShadowPool(s?.followees ?? []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function toggleShadow(name: string) {
+    setShadowSel((sel) =>
+      sel.includes(name)
+        ? sel.filter((n) => n !== name)
+        : sel.length >= 2
+          ? sel
+          : [...sel, name],
+    );
+  }
 
   async function sendSolo() {
     if (!input.trim() || !character || thinking) return;
@@ -324,11 +355,16 @@ function DialogueMode({
         anchorParagraph: point.paragraphIndex,
         userText,
         grounding: grounded,
+        soul: soulOn && hasSoulCards,
       });
       if (text) {
         setMsgs((m) => [
           ...m,
-          { from: "character", text, citations: grounded ? citations : undefined },
+          {
+            from: "character",
+            text,
+            citations: grounded || (soulOn && hasSoulCards) ? citations : undefined,
+          },
         ]);
       }
     } finally {
@@ -342,6 +378,9 @@ function DialogueMode({
     setEnsembleTurns((t) => [...t, { from: "user", text: userText }]);
     setInput("");
     setThinking(true);
+    const shadows = shadowPool
+      .filter((s) => shadowSel.includes(s.name))
+      .map((s) => ({ name: s.name, headline: s.headline }));
     try {
       const text = await generateStoryAi({
         mode: "ensemble",
@@ -349,9 +388,19 @@ function DialogueMode({
         characterIds: present.map((c) => c.id),
         anchorParagraph: point.paragraphIndex,
         userText,
+        shadows: shadowOn && shadows.length > 0 ? shadows : undefined,
       });
       if (text) {
-        const lines = parseEnsemble(text, present);
+        // 影子客人作为伪角色参与解析（名字与台词行首的「影子·X」对应）
+        const castForParse: Array<{ id: string; name: string; portrait?: string }> = [
+          ...present.map((c) => ({ id: c.id, name: c.name, portrait: c.portrait })),
+          ...shadows.map((s, i) => ({
+            id: `shadow-${i}`,
+            name: `影子·${s.name}`,
+            portrait: shadowPool.find((p) => p.name === s.name)?.avatarUrl,
+          })),
+        ];
+        const lines = parseEnsemble(text, castForParse);
         setEnsembleTurns((t) => [...t, { from: "ensemble", lines }]);
       }
     } finally {
@@ -416,9 +465,83 @@ function DialogueMode({
             </div>
             <p className="min-w-0 flex-1 truncate text-[11px] text-[color:var(--muted-foreground)]">
               {t("reader.dialogue.scene.onStage", {
-                names: present.map((c) => c.name).join("、"),
+                names: [
+                  ...present.map((c) => c.name),
+                  ...(shadowOn && shadowSel.length > 0
+                    ? shadowSel.map((n) => `影子·${n}`)
+                    : []),
+                ].join("、"),
               })}
             </p>
+          </div>
+
+          {/* 影子客人：关注列表里的真人（AI 想象演绎）以特邀观众身份入席 */}
+          <div className="grid gap-1.5" data-el="ensemble-shadow">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShadowOn((v) => !v)}
+                aria-pressed={shadowOn}
+                title={t("reader.dialogue.scene.shadowHint")}
+                data-el="ensemble-shadow-toggle"
+                className={cn(
+                  "flex shrink-0 items-center gap-1 border px-2 py-1 text-[11px] transition-colors",
+                  shadowOn
+                    ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)]"
+                    : "border-[color:var(--border)] text-[color:var(--muted-foreground)]",
+                )}
+              >
+                <Ghost className="h-3 w-3" />
+                {t("reader.dialogue.scene.shadow")}
+              </button>
+              {shadowOn && shadowPool.length > 0 && (
+                <p className="min-w-0 flex-1 truncate text-[10px] text-[color:var(--muted-foreground)]">
+                  {t("reader.dialogue.scene.shadowPick")}
+                </p>
+              )}
+            </div>
+            {shadowOn && shadowPool.length > 0 && (
+              <div className="flex gap-1.5 overflow-x-auto no-native-scrollbar pb-1">
+                {shadowPool.slice(0, 12).map((s) => {
+                  const on = shadowSel.includes(s.name);
+                  return (
+                    <button
+                      key={s.name}
+                      onClick={() => toggleShadow(s.name)}
+                      aria-pressed={on}
+                      data-el="ensemble-shadow-option"
+                      className={cn(
+                        "flex shrink-0 items-center gap-1.5 border px-2 py-1 text-[11px] transition-colors",
+                        on
+                          ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)]"
+                          : "border-[color:var(--border)] text-[color:var(--muted-foreground)]",
+                      )}
+                    >
+                      {s.avatarUrl ? (
+                        <span className="relative h-5 w-5 shrink-0 overflow-hidden rounded-full">
+                          <Image
+                            src={s.avatarUrl.startsWith("//") ? `https:${s.avatarUrl}` : s.avatarUrl}
+                            alt={s.name}
+                            fill
+                            unoptimized
+                            className="object-cover"
+                          />
+                        </span>
+                      ) : (
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[color:var(--border)] text-[9px]">
+                          {s.name.slice(0, 1)}
+                        </span>
+                      )}
+                      <span className="max-w-[90px] truncate">{s.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {shadowOn && shadowPool.length === 0 && (
+              <p className="text-[10px] leading-relaxed text-[color:var(--muted-foreground)]">
+                {t("reader.dialogue.scene.shadowEmpty")}
+              </p>
+            )}
           </div>
 
           <div className="max-h-[46vh] overflow-y-auto border border-[color:var(--border)] bg-[#171817] p-2.5">
@@ -523,6 +646,24 @@ function DialogueMode({
               <Quote className="h-3 w-3" />
               {t("reader.dialogue.grounded")}
             </button>
+            {/* 知乎灵魂开关：角色能“看见”读者自己授权同步的知乎回答 */}
+            {hasSoulCards && (
+              <button
+                onClick={() => setSoulOn((v) => !v)}
+                aria-pressed={soulOn}
+                title={t("reader.dialogue.soulHint", { name: character.name })}
+                data-el="dialogue-soul"
+                className={cn(
+                  "flex shrink-0 items-center gap-1 border px-2 py-1 text-[11px] transition-colors",
+                  soulOn
+                    ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)]"
+                    : "border-[color:var(--border)] text-[color:var(--muted-foreground)]",
+                )}
+              >
+                <Feather className="h-3 w-3" />
+                {t("reader.dialogue.soul")}
+              </button>
+            )}
           </div>
           <div className="max-h-[38vh] overflow-y-auto border border-[color:var(--border)] bg-[#171817] p-2.5">
             {msgs.length === 0 && (

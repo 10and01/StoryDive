@@ -2,13 +2,18 @@ import { NextRequest } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { appAi } from "@/lib/ai-client";
 import type { Difficulty, Side } from "@/lib/court/types";
+import type { EvidencePool } from "@/lib/court/evidence";
 import { rebutSystemPrompt, rebutUserPrompt, fallbackRebut } from "@/lib/court/agents";
+import { getCaseRowByCaseId } from "@/lib/db/queries/court";
 
 // POST /api/court/rebut  单回合单方发言（登录必需）。
 // 服务端无状态：transcript 由客户端持有并回传——该 Agent 能看到对方
-// 全部已出口的话，对抗是真实的逐轮回应。AI 失败回落风格化兜底句。
+// 全部已出口的话，对抗是真实的逐轮回应。
+// 论据战：caseId 命中 court_cases 时把当日证据池注入 prompt（[n] 引用纪律），
+// 证据由服务端持有，客户端只传文本。AI 失败回落风格化兜底句。
 
 interface RebutBody {
+  caseId?: string;
   caseTitle?: string;
   brief?: string;
   redHeadline?: string;
@@ -18,6 +23,17 @@ interface RebutBody {
   difficulty?: number;
   roundNo?: number;
   lean?: string;
+}
+
+// 从案由行还原证据池（损坏/空 → undefined，走无论据普通庭）
+function evidenceOfRow(raw: string | null): EvidencePool | undefined {
+  if (!raw) return undefined;
+  try {
+    const pool = JSON.parse(raw) as EvidencePool;
+    return pool && Array.isArray(pool.all) && pool.all.length > 0 ? pool : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -40,10 +56,21 @@ export async function POST(request: NextRequest) {
     .map((t) => ({ side: t.side, text: t.text.slice(0, 200) }));
   const roundNo = Math.max(1, Math.min(9, Number(body.roundNo) || Math.floor(transcript.length / 2) + 1));
 
+  // 证据池：服务端按 caseId 查当日案由行，查询失败不拦发言
+  let evidence: EvidencePool | undefined;
+  if (body.caseId) {
+    try {
+      const row = await getCaseRowByCaseId(body.caseId.slice(0, 64));
+      evidence = evidenceOfRow(row?.evidenceJson ?? null);
+    } catch (error) {
+      console.error("[court/rebut] evidence lookup failed:", error);
+    }
+  }
+
   try {
     const result = await appAi.chat({
       messages: [
-        { role: "system", content: rebutSystemPrompt(side, difficulty, lean) },
+        { role: "system", content: rebutSystemPrompt(side, difficulty, lean, evidence) },
         {
           role: "user",
           content: rebutUserPrompt({

@@ -2,15 +2,17 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { LogIn, LogOut, X } from "lucide-react";
+import { LogIn, LogOut, X, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUser } from "./user-provider";
+import { ProfileSyncSheet } from "./profile-sync";
 import type { UserProfile } from "@/lib/api/user-profile";
 
 export function UserBadge() {
   const { t } = useTranslation();
   const { user, loading, login, logout, oauthConfigured } = useUser();
   const [open, setOpen] = useState(false);
+  const [syncOpen, setSyncOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +49,18 @@ export function UserBadge() {
       <BadgeTrigger user={user} onClick={() => setOpen((v) => !v)} />
       {open && (
         <DropdownPanel user={user} onClose={() => setOpen(false)} userIdLabel={t("common.userId")}>
+          {!user.guest && oauthConfigured && (
+            <button
+              onClick={() => {
+                setOpen(false);
+                setSyncOpen(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {t("profileSync.entry")}
+            </button>
+          )}
           {user.guest && oauthConfigured && (
             <button
               onClick={login}
@@ -68,6 +82,7 @@ export function UserBadge() {
           </button>
         </DropdownPanel>
       )}
+      <ProfileSyncSheet open={syncOpen} onClose={() => setSyncOpen(false)} />
     </div>
   );
 }

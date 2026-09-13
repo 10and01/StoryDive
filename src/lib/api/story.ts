@@ -13,6 +13,10 @@ interface StoryAiInput {
   choice?: string;
   // dialogue 专用「引经据典」：服务端检索知乎站内真实回答注入 prompt
   grounding?: boolean;
+  // dialogue 专用「知乎灵魂」：服务端读取读者授权的判例卡，角色可点破「你自己写过…」
+  soul?: boolean;
+  // ensemble 专用「影子客人」：读者关注列表里的真人（公开资料），AI 想象演绎
+  shadows?: { name: string; headline?: string }[];
 }
 
 /** Calls the App AI-backed story route. Returns "" if AI is unavailable. */

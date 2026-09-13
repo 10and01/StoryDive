@@ -1,14 +1,17 @@
 import { request } from "./request";
 import type { CourtDuel, CourtProfile, Side } from "@/lib/court/types";
+import type { ZhihuCitation } from "./zhihu-citation";
 
 export type { CourtDuel, CourtProfile, Side };
+export type { ZhihuCitation };
 export type CourtTally = {
   red: number;
   blue: number;
   mine: "red" | "blue" | null;
 };
 
-// 开一局双 Agent 对抗庭：盐官陈词 + 烈盐/析盐立论（难度由观众画像自适应）。
+// 开一局双 Agent 对抗庭：辩题由服务端按「全站每日一题」解析（知乎画像推荐 →
+// 本地池兜底），个性化在演绎层（观众画像 + 证据池）。seed 参数仅为旧签名兼容。
 export async function openDuel(seed?: number): Promise<{
   case: CourtDuel;
   profile: CourtProfile | null;
@@ -28,8 +31,10 @@ export async function openDuel(seed?: number): Promise<{
   return data;
 }
 
-// 单回合单方发言：transcript 由客户端持有并回传（服务端无状态）。
+// 单回合单方发言：transcript 由客户端持有并回传（服务端无状态）；
+// 证据池由服务端按 caseId 持有，客户端只带 caseId。
 export async function rebutDuel(input: {
+  caseId?: string;
   caseTitle: string;
   brief: string;
   redHeadline: string;
@@ -47,6 +52,20 @@ export async function rebutDuel(input: {
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as { text: string; fallback?: boolean };
+}
+
+// 看山「深挖这个问题」：真实回答的观点综述（[n] 引用可点开验证）。
+export async function deepDiveQuestion(input: {
+  questionUrl?: string;
+  topic?: string;
+}): Promise<{ reply: string; citations: ZhihuCitation[]; source?: string }> {
+  const res = await request("/api/court/deepdive", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as { reply: string; citations: ZhihuCitation[]; source?: string };
 }
 
 // 读取某场票数（含我投的一方）。
