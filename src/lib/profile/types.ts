@@ -13,7 +13,7 @@ export interface UserProfile {
   summary: string;
 }
 
-/** 判例卡：用户自己的知乎创作（标题+摘要+赞同数+链接），对戏/法庭的引用素材 */
+/** 判例卡：用户自己的知乎创作或收藏（标题+摘要+赞同数+链接），对戏/法庭的引用素材 */
 export interface UserContentCard {
   title: string;
   summary: string;
@@ -21,6 +21,8 @@ export interface UserContentCard {
   likeCount: number;
   type: string; // answer / article / pin …
   createdAt: number; // 秒级时间戳
+  /** true = 收藏的内容（非本人创作），引用口吻用「你收藏过」而非「你写过」 */
+  collected?: boolean;
 }
 
 /** 影子卡：关注的人的公开资料，影子 NPC 演绎素材 */

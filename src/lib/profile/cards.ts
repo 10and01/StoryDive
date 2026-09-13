@@ -16,11 +16,12 @@ export async function loadConsentedCards(userId: string): Promise<UserContentCar
   }
 }
 
-// 判例块：注入盐官判词 / 想法文案的紧凑文本。
+// 判例块：注入盐官判词 / 想法文案的紧凑文本（区分创作与收藏）。
 export function cardsBlock(cards: UserContentCard[]): string {
   if (cards.length === 0) return "";
   const lines = cards.map(
-    (c) => `- 《${c.title}》（赞同 ${c.likeCount}）${c.summary ? `：${c.summary.slice(0, 60)}` : ""}`,
+    (c) =>
+      `- ${c.collected ? "[收藏]" : "[创作]"}《${c.title}》（赞同 ${c.likeCount}）${c.summary ? `：${c.summary.slice(0, 60)}` : ""}`,
   );
-  return `【这位观众自己的知乎回答（TA 授权引用）】\n${lines.join("\n")}`;
+  return `【这位观众自己的知乎创作与收藏（TA 授权引用）】\n${lines.join("\n")}`;
 }

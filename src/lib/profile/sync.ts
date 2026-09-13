@@ -9,7 +9,10 @@ import { appAi } from "@/lib/ai-client";
 import { extractJson } from "@/lib/court/parse";
 import {
   fetchUserContents,
+  fetchUserCollections,
+  fetchZhihuUserBrief,
   type UserContentItem,
+  type UserCollectionItem,
   type FolloweeItem,
 } from "@/lib/zhihu/user-data";
 import type { FolloweeCard, UserContentCard, UserProfile } from "./types";
@@ -41,13 +44,29 @@ export function toFolloweeCards(items: FolloweeItem[]): FolloweeCard[] {
     }));
 }
 
-const PROFILE_SYSTEM_PROMPT = `你是「入局」的用户画像师。根据一位知乎用户的高赞创作列表（标题+摘要+赞同数），提炼一份用于个性化叙事体验的兴趣画像。
+// 把收藏条目收敛成判例卡（collected=true：引用口吻用「你收藏过」）。
+export function toCollectionCards(items: UserCollectionItem[]): UserContentCard[] {
+  return items
+    .filter((it) => it.title)
+    .map((it) => ({
+      title: it.title,
+      summary: it.summary,
+      url: it.url,
+      likeCount: it.likeCount,
+      type: it.contentType,
+      createdAt: it.favTime,
+      collected: true,
+    }));
+}
+
+const PROFILE_SYSTEM_PROMPT = `你是「入局」的用户画像师。根据一位知乎用户的创作/收藏列表（标题+摘要+赞同数，可能附一句个人签名），提炼一份用于个性化叙事体验的兴趣画像。
 只输出一个 JSON 对象，不要 markdown 围栏，不要解释：
 {"keywords": ["3-6个具体兴趣关键词"], "interests": ["2-4个兴趣领域短语"], "tone": "一句话表达偏好", "summary": "一句话画像，30字以内"}
 要求：
-- 只从列表内容归纳，不臆测身份、职业、住址等隐私。
+- 只从列表与签名内容归纳，不臆测身份、职业、住址等隐私。
 - 关键词要具体可感（如「循环悬疑」「职场立威」而非「小说」「职场」）。
 - tone 描述这个人说话的味儿（如「冷静爱拆因果」「热忱爱举身边例子」）。
+- 收藏的内容反映兴趣倾向，创作的反映表达方式；没有创作只有收藏时，画像侧重兴趣。
 - 全部简体中文。`;
 
 function sanitizeProfile(raw: unknown): UserProfile | null {
@@ -65,21 +84,25 @@ function sanitizeProfile(raw: unknown): UserProfile | null {
   return { keywords, interests, tone, summary };
 }
 
-// 从判例卡提炼画像。内容太少（<2 条）或 AI 失败返回 null（调用方仍可入库判例卡）。
-export async function distillProfile(cards: UserContentCard[]): Promise<UserProfile | null> {
-  if (cards.length < 2) return null;
+// 从判例卡（+可选的知乎签名）提炼画像。素材太少或 AI 失败返回 null。
+export async function distillProfile(
+  cards: UserContentCard[],
+  userBrief?: string,
+): Promise<UserProfile | null> {
+  if (cards.length === 0 && !userBrief) return null;
   const lines = cards
     .slice(0, 20)
     .map(
       (c, i) =>
-        `${i + 1}. ${c.title}（赞同 ${c.likeCount}）${c.summary ? `：${c.summary.slice(0, 80)}` : ""}`,
+        `${i + 1}. ${c.collected ? "[收藏]" : "[创作]"} ${c.title}（赞同 ${c.likeCount}）${c.summary ? `：${c.summary.slice(0, 80)}` : ""}`,
     )
     .join("\n");
+  const brief = userBrief ? `\nTA 的知乎签名/简介：${userBrief.slice(0, 120)}` : "";
   try {
     const result = await appAi.chat({
       messages: [
         { role: "system", content: PROFILE_SYSTEM_PROMPT },
-        { role: "user", content: `创作列表：\n${lines}` },
+        { role: "user", content: `创作/收藏列表：\n${lines || "（无）"}${brief}` },
       ],
       temperature: 0.5,
     });
@@ -90,8 +113,8 @@ export async function distillProfile(cards: UserContentCard[]): Promise<UserProf
   }
 }
 
-// 完整同步：拉创作列表（按赞同数取 20 条回答）→ 判例卡 + 画像。
-// 鉴权失败向上抛 ZhihuAuthError；其余失败降级返回尽可能多的成果。
+// 完整同步（冷启动链）：创作列表 → 不够 3 条时补近期收藏 → 再补知乎签名。
+// 三层都空才是真正的空账号。鉴权失败向上抛 ZhihuAuthError；其余失败降级。
 export async function syncProfileFromZhihu(
   oauthToken: string,
 ): Promise<{ profile: UserProfile | null; cards: UserContentCard[] }> {
@@ -100,7 +123,30 @@ export async function syncProfileFromZhihu(
     sortField: "like_count",
     limit: 20,
   });
-  const cards = toContentCards(items);
-  const profile = cards.length >= 2 ? await distillProfile(cards) : null;
+  let cards = toContentCards(items);
+
+  // 冷启动第一层：创作不足时用近期收藏补位（收藏的内容同样反映兴趣）
+  if (cards.length < 3) {
+    try {
+      const collections = await fetchUserCollections(oauthToken, 20);
+      const collected = toCollectionCards(collections).filter(
+        (c) => !cards.some((own) => own.url === c.url),
+      );
+      cards = [...cards, ...collected];
+    } catch {
+      // 收藏拉取失败不拦同步
+    }
+  }
+
+  // 冷启动第二层：知乎签名/简介（headline/description）作为画像底色
+  let userBrief: string | undefined;
+  try {
+    const brief = await fetchZhihuUserBrief(oauthToken);
+    if (brief) userBrief = [brief.headline, brief.description].filter(Boolean).join("；");
+  } catch {
+    // 签名读取失败不拦同步
+  }
+
+  const profile = await distillProfile(cards, userBrief);
   return { profile, cards };
 }

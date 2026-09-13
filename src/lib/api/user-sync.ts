@@ -90,3 +90,16 @@ export async function deleteSync(): Promise<boolean> {
     return false;
   }
 }
+
+// 影子客人冷启动：没同步关注列表（或关注为空）时，用话题下的知乎高赞旅人
+// （纯公开资料）当影子客人，任何账号都能玩群像邀请影子。
+export async function fetchShadowGuests(topic: string): Promise<FolloweeCardDTO[]> {
+  try {
+    const res = await request(`/api/user/shadows?topic=${encodeURIComponent(topic)}`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { shadows?: FolloweeCardDTO[] };
+    return data.shadows ?? [];
+  } catch {
+    return [];
+  }
+}

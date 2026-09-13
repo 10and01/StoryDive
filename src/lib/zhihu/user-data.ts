@@ -161,3 +161,81 @@ export async function fetchUserFollowees(
   }
   return out;
 }
+
+// —— 近期收藏（user/collections）：冷启动画像的信号源 ——
+// 没写过回答的账号往往收藏过内容；「你收藏的回答」同样能点亮画像与判例。
+
+interface RawCollectionItem {
+  ContentType?: string;
+  Url?: string;
+  CreatedAt?: number;
+  FavTime?: number;
+  LikeCount?: number;
+  FavoriteCount?: number;
+  Title?: string;
+  Summary?: string;
+}
+
+export interface UserCollectionItem {
+  contentType: string;
+  url: string;
+  title: string;
+  summary: string;
+  likeCount: number;
+  favoriteCount: number;
+  favTime: number; // 秒级时间戳
+}
+
+// 拉取用户近期收藏（接口无分页，最多一批 50 条）。鉴权失败抛 ZhihuAuthError。
+export async function fetchUserCollections(
+  oauthToken: string,
+  limit = 20,
+): Promise<UserCollectionItem[]> {
+  const n = Math.max(1, Math.min(50, limit));
+  const data = await oauthGet(`${CONTENTS_ENDPOINT.replace("/contents", "/collections")}?Limit=${n}`, oauthToken);
+  if (!data?.Data) return [];
+  const items = (data.Data as { Items?: RawCollectionItem[] }).Items ?? [];
+  const out: UserCollectionItem[] = [];
+  for (const raw of items) {
+    if (!raw.Url || !raw.Title) continue;
+    out.push({
+      contentType: raw.ContentType || "answer",
+      url: raw.Url,
+      title: (raw.Title ?? "").trim(),
+      summary: (raw.Summary ?? "").trim(),
+      likeCount: typeof raw.LikeCount === "number" ? raw.LikeCount : 0,
+      favoriteCount: typeof raw.FavoriteCount === "number" ? raw.FavoriteCount : 0,
+      favTime: typeof raw.FavTime === "number" ? raw.FavTime : 0,
+    });
+  }
+  return out;
+}
+
+// —— 用户基础资料（openapi.zhihu.com/user，仅 OAuth token）：headline/description ——
+// 冷启动最后一块拼图：没创作没收藏的账号，一句话签名也能提炼出画像底色。
+
+export interface ZhihuUserBrief {
+  headline: string;
+  description: string;
+}
+
+export async function fetchZhihuUserBrief(oauthToken: string): Promise<ZhihuUserBrief | null> {
+  const headers = zhihuHeaders();
+  if (!headers) return null;
+  try {
+    const res = await fetch("https://openapi.zhihu.com/user", {
+      headers: { Authorization: `Bearer ${oauthToken}` },
+      cache: "no-store",
+    });
+    const raw = await res.text();
+    const data = JSON.parse(raw) as { code?: number; headline?: string; description?: string };
+    if (!res.ok || (typeof data.code === "number" && data.code !== 20000)) return null;
+    const brief = {
+      headline: (data.headline ?? "").trim(),
+      description: (data.description ?? "").trim(),
+    };
+    return brief.headline || brief.description ? brief : null;
+  } catch {
+    return null;
+  }
+}

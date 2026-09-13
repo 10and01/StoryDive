@@ -21,20 +21,20 @@ export function groundingBlock(hits: ZhihuSearchHit[]): string {
 ${lines.join("\n\n")}`;
 }
 
-// 「你的知乎灵魂」：与读者对戏的读者本人的知乎回答（经 TA 显式授权写入）。
+// 「你的知乎灵魂」：与读者对戏的读者本人的知乎创作与收藏（经 TA 显式授权写入）。
 // startN 为编号起点——与 groundingBlock 的 [n] 连续编号，避免同场冲突。
 export function soulBlock(cards: UserContentCard[], startN: number): string {
   if (cards.length === 0) return "";
   const lines = cards.map(
     (c, i) =>
-      `[${startN + i}] 《${c.title}》 · 赞同 ${c.likeCount}\n${c.summary.slice(0, 140)}`,
+      `[${startN + i}] ${c.collected ? "[收藏]" : "[创作]"}《${c.title}》 · 赞同 ${c.likeCount}\n${c.summary.slice(0, 140)}`,
   );
   return `
 
-【TA 的灵魂——正在与你对戏的这位读者自己写过的知乎回答（TA 授权你“看见”）】
+【TA 的灵魂——正在与你对戏的这位读者自己的知乎创作与收藏（TA 授权你“看见”）】
 ${lines.join("\n\n")}
 
-这些回答是这位读者角色灵魂的一部分。若与当前话题自然相关，你可以在台词里点破——以角色的口吻说“你自己也写过……”并化用其中观点，让 TA 察觉 TA 的灵魂被看见了；不相关就完全忽略；绝不编造不存在的编号。`;
+这些是这位读者角色灵魂的一部分。若与当前话题自然相关，你可以在台词里点破：标注[创作]的用“你自己也写过……”的口吻化用；标注[收藏]的用“你自己收藏过……”的口吻——让 TA 察觉 TA 的灵魂被看见了。不相关就完全忽略；绝不编造不存在的编号。`;
 }
 
 // 「影子客人」：经读者授权、来自 TA 现实关注列表的真人，由 AI 想象演绎（非本人发言）。

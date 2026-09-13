@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Send, Sparkles, Bookmark, Check, LogIn, Users, Quote, Feather, Ghost } from "lucide-react";
+import { X, Send, Sparkles, Bookmark, Check, LogIn, Users, Quote, Feather, Ghost, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Story, EnterPoint, BranchKind } from "@/lib/story/types";
 import { useBranches } from "./branch-store";
 import { generateStoryAi, generateStoryAiDetail } from "@/lib/api/story";
-import { fetchSyncStatus, type FolloweeCardDTO } from "@/lib/api/user-sync";
+import { fetchSyncStatus, fetchShadowGuests, type FolloweeCardDTO } from "@/lib/api/user-sync";
 import type { ZhihuCitation } from "@/lib/api/zhihu-citation";
 import { ZhihuCitations } from "./zhihu-citations";
 import { cn } from "@/utils/utils";
@@ -341,6 +341,22 @@ function DialogueMode({
     );
   }
 
+  // 影子冷启动：没有关注卡时，用话题下的知乎高赞旅人（公开资料）当客人
+  const [shadowLoading, setShadowLoading] = useState(false);
+  async function loadShadowGuests() {
+    if (shadowLoading) return;
+    setShadowLoading(true);
+    try {
+      const guests = await fetchShadowGuests(story.title);
+      setShadowPool((pool) => {
+        const existing = new Set(pool.map((p) => p.name));
+        return [...pool, ...guests.filter((g) => !existing.has(g.name))];
+      });
+    } finally {
+      setShadowLoading(false);
+    }
+  }
+
   async function sendSolo() {
     if (!input.trim() || !character || thinking) return;
     const userText = input.trim();
@@ -538,9 +554,24 @@ function DialogueMode({
               </div>
             )}
             {shadowOn && shadowPool.length === 0 && (
-              <p className="text-[10px] leading-relaxed text-[color:var(--muted-foreground)]">
-                {t("reader.dialogue.scene.shadowEmpty")}
-              </p>
+              <div className="grid gap-1.5" data-el="ensemble-shadow-empty">
+                <p className="text-[10px] leading-relaxed text-[color:var(--muted-foreground)]">
+                  {t("reader.dialogue.scene.shadowEmpty")}
+                </p>
+                <button
+                  onClick={() => void loadShadowGuests()}
+                  disabled={shadowLoading}
+                  className="inline-flex w-fit items-center gap-1.5 border border-[color:var(--primary)]/50 px-2 py-1 text-[11px] text-[color:var(--primary)] transition-colors hover:bg-[color:var(--primary)]/10 disabled:opacity-60"
+                  data-el="ensemble-shadow-guests-btn"
+                >
+                  {shadowLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Ghost className="h-3 w-3" />
+                  )}
+                  {t("reader.dialogue.scene.shadowGuests")}
+                </button>
+              </div>
             )}
           </div>
 
