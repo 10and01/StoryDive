@@ -114,7 +114,8 @@ export async function GET(request: NextRequest) {
         { role: "system", content: theaterSystemPrompt() },
         { role: "user", content: theaterUserPrompt(topic) },
       ],
-      params: { viewer_user_id: auth.user.id, temperature: 0.95 },
+      viewer_user_id: auth.user.id,
+      temperature: 0.95,
     });
     const text = result.choices?.[0]?.message?.content ?? "";
     const play = toPlay(extractJson(text), topic, source, dateLabel);

@@ -82,7 +82,8 @@ export async function GET(request: NextRequest) {
         { role: "system", content: courtSystemPrompt() },
         { role: "user", content: courtUserPrompt(caseSeed) },
       ],
-      params: { viewer_user_id: auth.user.id, temperature: 0.9 },
+      viewer_user_id: auth.user.id,
+      temperature: 0.9,
     });
     const text = result.choices?.[0]?.message?.content ?? "";
     const c = toCase(extractJson(text), caseId, caseSeed.caseTitle);

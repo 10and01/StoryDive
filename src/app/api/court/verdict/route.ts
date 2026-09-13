@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
           content: judgeVerdictPrompt(caseTitle, redHeadline, blueHeadline, r, b),
         },
       ],
-      params: { viewer_user_id: auth.user.id, temperature: 0.8 },
+      viewer_user_id: auth.user.id,
+      temperature: 0.8,
     });
     const text = result.choices?.[0]?.message?.content?.trim();
     return Response.json({ verdict: text || fallback });

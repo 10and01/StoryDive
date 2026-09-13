@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
         { role: "system", content: system },
         { role: "user", content: userMsg },
       ],
-      params: { viewer_user_id: auth.user.id, temperature: mode === "reason" ? 0.4 : 0.9 },
+      viewer_user_id: auth.user.id,
+      temperature: mode === "reason" ? 0.4 : 0.9,
     });
     const text = result.choices?.[0]?.message?.content ?? "";
     return Response.json({ text });
@@ -94,6 +95,7 @@ export async function POST(request: NextRequest) {
         { status: 402 },
       );
     }
-    throw error;
+    console.error("story/ai failed:", error);
+    return Response.json({ error: "ai_failed" }, { status: 500 });
   }
 }

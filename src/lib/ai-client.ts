@@ -61,6 +61,11 @@ function getClient(): OpenAI {
     cachedClient = new OpenAI({
       apiKey,
       baseURL: (process.env.OPENAI_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, ""),
+      // OpenNext 的 node 兼容层会替换 globalThis.fetch，导致 SDK 走 undici
+      // 在 workerd 里连不出去；显式使用路由处理器的原生 fetch。
+      fetch: ((input: RequestInfo | URL, init?: RequestInit) =>
+        fetch(input, init)) as unknown as typeof fetch,
+      maxRetries: 0,
     });
   }
   return cachedClient;
