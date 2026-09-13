@@ -4,13 +4,15 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useSearchParams } from "next/navigation";
-import { ChevronLeft, Share2, ChevronDown, ScrollText } from "lucide-react";
+import { ChevronLeft, Share2, ChevronDown, ScrollText, Type } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getStory } from "@/lib/story/library";
 import type { EnterPoint, StoryChapter } from "@/lib/story/types";
 import { StoryGraphViews } from "@/components/story/story-graph-views";
 import { EnterSheet } from "@/components/story/enter-sheet";
 import { NodeSheet } from "@/components/story/node-sheet";
+import { TypographySheet } from "@/components/story/typography-sheet";
+import { useReaderTypography } from "@/lib/reader/use-reader-typography";
 import { AmbientPlayer } from "@/components/story/ambient-player";
 import { AmbientLayer } from "@/components/story/ambient-layer";
 import { StoryCover } from "@/components/story/story-cover";
@@ -45,6 +47,9 @@ export default function ReaderPage({
   // 逐段推进式阅读：paced=true 时逐段淡入推进；顶部「全文展开」可切回传统整页
   const [paced, setPaced] = useState(true);
   const [revealed, setRevealed] = useState(1);
+  // 排版设置面板（字体 / 字号 / 行距 / 字间距 / 段间距）
+  const [typoOpen, setTypoOpen] = useState(false);
+  const { typography, update, reset } = useReaderTypography();
   // 封面式入场：首次进入时铺满一层电影感标题幕，轻点或稍候后淡出显露正文
   const [coverDone, setCoverDone] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -231,18 +236,27 @@ export default function ReaderPage({
       <AmbientLayer />
       <ReadingProgressBar />
       <div className="mx-auto w-full max-w-[680px] px-4 pb-24">
-        {/* top bar */}
-        <div className="mb-3 flex items-center justify-between gap-2">
+        {/* top bar：窄屏时按钮组自动换行，避免溢出 */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <Link
             href="/"
-            className="flex items-center gap-1 text-sm text-[color:var(--muted-foreground)]"
+            className="flex shrink-0 items-center gap-1 text-sm text-[color:var(--muted-foreground)]"
             data-el="reader-back"
           >
             <ChevronLeft className="h-4 w-4" />
             {t("common.back")}
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <AmbientPlayer mood={story.ambientMood ?? "calm"} label={story.title} />
+            <button
+              onClick={() => setTypoOpen(true)}
+              data-el="reader-typography"
+              aria-label={t("reader.typography.title")}
+              className="flex items-center gap-1.5 border border-[color:var(--border)] px-2.5 py-1 text-xs text-[color:var(--muted-foreground)] transition-colors hover:border-[color:var(--primary)]/60 hover:text-[color:var(--primary)]"
+            >
+              <Type className="h-3.5 w-3.5" />
+              {t("reader.typography.open")}
+            </button>
             <button
               onClick={() => setPaced((v) => !v)}
               aria-pressed={!paced}
@@ -307,7 +321,7 @@ export default function ReaderPage({
         </header>
 
         {/* body flow with chapters, inline scene images, and enter points */}
-        <article className="grid gap-4" data-el="reader-body">
+        <article className="reader-flow" data-el="reader-body">
           {flat
             .filter((row) => !paced || row.globalIndex < revealed)
             .map((row) => {
@@ -333,7 +347,7 @@ export default function ReaderPage({
                     )}
                   </div>
                 )}
-                <p className="font-heading text-[17px] leading-[1.9] text-[color:var(--rs-ink)]">
+                <p className="reader-typography text-[color:var(--rs-ink)]">
                   {row.text}
                 </p>
                 {story.id === "shuituzhuo" && row.globalIndex === 16 && (
@@ -497,6 +511,14 @@ export default function ReaderPage({
           setActiveNodeId(null);
           if (ep) openPoint(ep);
         }}
+      />
+
+      <TypographySheet
+        open={typoOpen}
+        onOpenChange={setTypoOpen}
+        typography={typography}
+        onChange={update}
+        onReset={reset}
       />
 
       {!coverDone && <StoryCover story={story} onDone={() => setCoverDone(true)} />}

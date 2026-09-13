@@ -80,7 +80,7 @@ export function StoryGraphViews({
               data-el="graph-view-tab"
               aria-pressed={active}
               className={cn(
-                "flex min-w-0 items-center justify-center gap-1.5 rounded-[5px] px-1.5 py-1.5 text-xs font-medium transition-colors",
+                "flex min-w-0 items-center justify-center gap-1 rounded-[5px] px-1 py-1.5 text-[11px] font-medium transition-colors sm:gap-1.5 sm:px-1.5 sm:text-xs",
                 active
                   ? "bg-[color:var(--primary)]/[0.16] text-[color:var(--primary)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--primary)_45%,transparent)]"
                   : "text-[color:var(--muted-foreground)] hover:text-[color:var(--foreground)]",

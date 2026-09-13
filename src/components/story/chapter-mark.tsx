@@ -20,7 +20,7 @@ export function ChapterMark({ chapter }: { chapter: StoryChapter }) {
       </span>
       <div className="mt-3 flex w-full items-center gap-3">
         <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[color:var(--primary)]/40" />
-        <h2 className="font-heading text-xl text-[color:var(--primary)]">{chapter.title}</h2>
+        <h2 className="reader-chapter-title text-[color:var(--primary)]">{chapter.title}</h2>
         <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[color:var(--primary)]/40" />
       </div>
     </div>

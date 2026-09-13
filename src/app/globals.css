@@ -63,6 +63,93 @@ h1, h2, h3 {
   font-family: var(--font-heading), "Noto Serif SC", "Songti SC", "STSong", "SimSun", var(--font-sans-sc), "Noto Sans SC", "PingFang SC", Georgia, serif;
 }
 
+/* ------------------------------------------------------------------ *
+ * Reader typography — 用户可调的阅读排版（字体 / 字号 / 行距 / 字间距 /
+ * 段间距）。数值变量由 layout.tsx 的预渲染脚本与 useReaderTypography()
+ * 落在 <html> 上；下面三条字体栈全部为开源授权（SIL OFL），英文与中文
+ * 配对成完整回退链，缺字时逐级回退不出现混排毛刺。
+ * ------------------------------------------------------------------ */
+:root {
+  /* 衬线 · 文学沉浸：Literata（拉丁）+ 思源宋体（中文） */
+  --reader-font-serif: var(--font-serif-en), var(--font-heading), "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+  /* 衬线 · 文艺温暖：霞鹜文楷·GB 屏幕版（自带 Klee 风拉丁），屏幕 hinting 调校 */
+  --reader-font-wenkai: "LXGW WenKai Screen", var(--font-serif-en), "Kaiti SC", "STKaiti", "KaiTi", Georgia, serif;
+  /* 无衬线 · 快速屏读：Geist（拉丁）+ 思源黑体（中文） */
+  --reader-font-sans: var(--font-sans), var(--font-sans-sc), "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+html[data-reader-font="noto-serif"] { --reader-font-family: var(--reader-font-serif); }
+html[data-reader-font="wenkai"] { --reader-font-family: var(--reader-font-wenkai); }
+html[data-reader-font="noto-sans"] { --reader-font-family: var(--reader-font-sans); }
+
+/* 正文消费点：未恢复设置时回退衬线默认，SSR 首屏与最终视觉一致 */
+.reader-typography {
+  font-family: var(--reader-font-family, var(--reader-font-serif));
+  font-size: var(--reader-font-size, 17px);
+  line-height: var(--reader-line-height, 1.9);
+  letter-spacing: var(--reader-letter-spacing, 0em);
+  /* 只用真实字重渲染，禁用合成加粗/斜体带来的发虚毛边 */
+  font-synthesis: none;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+}
+
+/* 段落流：段间距为无单位倍数 × 正文字号，随排版设置等比缩放 */
+.reader-flow {
+  display: grid;
+  gap: calc(var(--reader-para-gap, 0.9) * var(--reader-font-size, 17px));
+}
+
+/* 章节标题随正文字号与字体缩放，保持阅读流的排版一致感 */
+.reader-chapter-title {
+  font-family: var(--reader-font-family, var(--reader-font-serif));
+  font-size: calc(var(--reader-font-size, 17px) * 1.35);
+  font-synthesis: none;
+}
+
+/* 设置面板字体卡片样字 */
+.font-sample-noto-serif { font-family: var(--reader-font-serif); }
+.font-sample-wenkai { font-family: var(--reader-font-wenkai); }
+.font-sample-noto-sans { font-family: var(--reader-font-sans); }
+
+/* 排版设置滑杆：原生 range + 主题化轨道，零依赖 */
+.reader-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(214, 192, 142, 0.6), rgba(214, 192, 142, 0.16));
+  outline: none;
+  cursor: pointer;
+}
+.reader-slider:focus-visible {
+  box-shadow: 0 0 0 2px rgba(214, 192, 142, 0.4);
+}
+.reader-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: #d6c08e;
+  border: 2px solid #171817;
+  box-shadow: 0 0 0 1px rgba(214, 192, 142, 0.55), 0 0 10px rgba(214, 192, 142, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.reader-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+.reader-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: #d6c08e;
+  border: 2px solid #171817;
+  box-shadow: 0 0 0 1px rgba(214, 192, 142, 0.55);
+  cursor: pointer;
+}
+
 /* Prevent iOS WKWebView focus auto-zoom on form controls below the sm breakpoint.
  * `!important` is required: Tailwind utility classes (text-sm, text-[15px]) outrank
  * type selectors on specificity, and `@media` doesn't change that. */

@@ -155,7 +155,7 @@
   "language": {
     "label": "语言",
     "triggerLabel": "语言：{{language}}",
-    "followSystem": "跟随系统",
+    "followSystem": "系统",
     "followSystemWithLanguage": "跟随系统（{{language}}）",
     "enUS": "English",
     "zhCN": "中文"
@@ -177,7 +177,7 @@
   "nav": {
     "shelf": "书架",
     "theater": "盐灵剧场",
-    "court": "名场面法庭",
+    "court": "法庭",
     "branches": "我的支线",
     "hall": "殿堂"
   },
@@ -193,9 +193,35 @@
     "searchPlaceholder": "搜索作品 · 标题 / 作者 / 关键词",
     "resultCount": "共 {{count}} 件作品",
     "clearFilters": "清除筛选",
-    "empty": "没有匹配的作品，换个关键词或标签试试。"
+    "empty": "没有匹配的作品，换个关键词或标签试试。",
+    "moreTags": "更多",
+    "allTagsTitle": "全部分类",
+    "allTagsDesc": "点选标签即可筛选，支持多选组合，与顶部标签条实时联动",
+    "done": "完成"
   },
   "reader": {
+    "typography": {
+      "open": "排版",
+      "title": "阅读排版",
+      "description": "调整即刻生效，并自动记住你的偏好",
+      "font": "字体",
+      "serifTag": "衬线",
+      "sansTag": "无衬线",
+      "fontNotoSerif": "思源宋体",
+      "fontWenkai": "霞鹜文楷",
+      "fontNotoSans": "思源黑体",
+      "sample": "永和 Aa",
+      "fontSize": "字号",
+      "fontSizeSmaller": "缩小字号",
+      "fontSizeLarger": "放大字号",
+      "lineHeight": "行距",
+      "letterSpacing": "字间距",
+      "advanced": "高级",
+      "paraGap": "段间距",
+      "reset": "恢复默认",
+      "licenseNote": "字体均为开源授权（SIL OFL），可安心阅读",
+      "preview": "入局一个名场面，对戏、分叉、改写，走出你的结局。永和九年，岁在癸丑，暮春之初。The story begins here — 0123456789。"
+    },
     "graphToggle": "故事图谱",
     "scenePicker": "想从哪个情节开聊？",
     "enterHint": "入局点",

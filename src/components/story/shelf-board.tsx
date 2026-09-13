@@ -6,6 +6,13 @@ import Image from "next/image";
 import { Search, X, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export interface Relic {
   id: string;
@@ -22,13 +29,15 @@ export interface Relic {
 /**
  * 作品库：搜索 + 标签化管理。
  *  - 搜索框：按标题 / 作者 / 导语 / 标签 模糊匹配（不区分大小写）。
- *  - 标签条：聚合全部作品标签，点击可多选筛选（AND：需同时命中所有已选标签）。
+ *  - 标签条：聚合全部作品标签，点击可多选筛选（AND：需同时命中所有已选标签）；
+ *    横向滚动展示常用标签，行尾「更多」打开底部面板纵览全部分类（多选）。
  * 搜索与标签筛选组合生效，结果实时更新，并显示命中数量与「无结果」空态。
  */
 export function ShelfBoard({ relics }: { relics: Relic[] }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // 聚合所有标签，按出现频次从高到低排序
   const allTags = useMemo(() => {
@@ -83,10 +92,10 @@ export function ShelfBoard({ relics }: { relics: Relic[] }) {
         )}
       </div>
 
-      {/* 标签筛选条 */}
+      {/* 标签筛选条：横向滚动 + 行尾「更多」打开全部分类面板 */}
       <div className="mb-3 flex items-center gap-2" data-el="shelf-tags">
         <Tag className="h-3.5 w-3.5 shrink-0 text-[color:var(--muted-foreground)]" aria-hidden />
-        <div className="flex gap-1.5 overflow-x-auto no-native-scrollbar py-0.5">
+        <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto no-native-scrollbar py-0.5">
           {allTags.map((tg) => {
             const on = activeTags.includes(tg);
             return (
@@ -107,6 +116,19 @@ export function ShelfBoard({ relics }: { relics: Relic[] }) {
             );
           })}
         </div>
+        <button
+          onClick={() => setMoreOpen(true)}
+          data-el="shelf-tags-more"
+          className="relative shrink-0 border border-[color:var(--primary)]/45 px-2.5 py-1 text-xs text-[color:var(--primary)] transition-colors hover:bg-[color:var(--primary)]/[0.1]"
+        >
+          {t("shelf.moreTags")}
+          {activeTags.length > 0 && (
+            <span
+              className="rs-pin absolute -right-1 -top-1 h-2 w-2"
+              aria-hidden
+            />
+          )}
+        </button>
       </div>
 
       {/* 结果计数 + 清除 */}
@@ -182,6 +204,70 @@ export function ShelfBoard({ relics }: { relics: Relic[] }) {
           </ul>
         )}
       </section>
+
+      {/* 全部分类面板：纵向浏览全部标签，多选与标签条实时联动；操作栏固定不随内容滚动 */}
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[80svh] gap-0 overflow-hidden border-[color:var(--border)] bg-[#171817]"
+          style={{
+            paddingBottom:
+              "var(--safe-area-bottom, max(20px, env(safe-area-inset-bottom, 0px)))",
+          }}
+          data-el="shelf-tags-sheet"
+        >
+          <SheetHeader className="shrink-0 pb-1">
+            <SheetTitle>{t("shelf.allTagsTitle")}</SheetTitle>
+            <SheetDescription>{t("shelf.allTagsDesc")}</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2" data-el="shelf-tags-scroll">
+            <div className="flex flex-wrap gap-2" data-el="shelf-tags-all">
+              {allTags.map((tg) => {
+                const on = activeTags.includes(tg);
+                return (
+                  <button
+                    key={tg}
+                    onClick={() => toggleTag(tg)}
+                    aria-pressed={on}
+                    className={cn(
+                      "whitespace-nowrap border px-3 py-1.5 text-xs transition-colors",
+                      on
+                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.16] text-[color:var(--primary)]"
+                        : "border-[color:var(--border)] text-[color:var(--muted-foreground)] hover:border-[color:var(--primary)]/50 hover:text-[color:var(--rs-ink)]",
+                    )}
+                  >
+                    {tg}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="shrink-0 border-t border-[color:var(--border)]/50 px-4 pt-3">
+            <div className="flex items-center justify-between gap-3 pb-1">
+              <span className="text-[11px] text-[color:var(--muted-foreground)]">
+                {t("shelf.resultCount", { count: filtered.length })}
+              </span>
+              <div className="flex shrink-0 gap-2">
+                {activeTags.length > 0 && (
+                  <button
+                    onClick={() => setActiveTags([])}
+                    className="border border-[color:var(--border)] px-3 py-1.5 text-xs text-[color:var(--muted-foreground)] transition-colors hover:text-[color:var(--rs-ink)]"
+                  >
+                    {t("shelf.clearFilters")}
+                  </button>
+                )}
+                <button
+                  onClick={() => setMoreOpen(false)}
+                  data-el="shelf-tags-done"
+                  className="border border-[color:var(--primary)] bg-[color:var(--primary)]/[0.12] px-4 py-1.5 text-xs text-[color:var(--primary)] transition-colors hover:bg-[color:var(--primary)]/[0.2]"
+                >
+                  {t("shelf.done")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

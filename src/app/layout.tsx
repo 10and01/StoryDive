@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Geist, Noto_Serif_SC, Noto_Sans_SC } from "next/font/google";
+import "@/fonts/lxgw-screen/lxgw-wenkai-gb-screen.css";
+import { Geist, Literata, Noto_Serif_SC, Noto_Sans_SC } from "next/font/google";
 import { cn } from "@/utils/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { I18nProvider } from "@/components/i18n/i18n-provider";
@@ -8,8 +9,11 @@ import { LocaleSyncEffect } from "@/components/i18n/locale-sync-effect";
 import { UserProvider } from "@/components/user-profile/user-provider";
 import { BranchProvider } from "@/components/story/branch-store";
 import { getServerLocale } from "@/lib/i18n/server-preference";
+import { getServerReaderTypography } from "@/lib/reader/server-typography";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+// Literata：Google Play Books 御用的长文阅读衬线体（OFL），与思源宋体配对
+const literata = Literata({ subsets: ["latin"], variable: "--font-serif-en" });
 const notoSans = Noto_Sans_SC({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
@@ -60,15 +64,28 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getServerLocale();
+  // 服务端读取已保存的排版（cookie 双写），直接渲染在 <html> 上：
+  // 首帧即正确排版，无闪烁，且对未挂排版 hook 的页面（404 等）同样生效
+  const typography = await getServerReaderTypography();
 
   return (
     <html
       lang={locale}
       suppressHydrationWarning
+      data-reader-font={typography.font}
+      style={
+        {
+          "--reader-font-size": `${typography.fontSize}px`,
+          "--reader-line-height": `${typography.lineHeight}`,
+          "--reader-letter-spacing": `${typography.letterSpacing}em`,
+          "--reader-para-gap": `${typography.paraGap}`,
+        } as React.CSSProperties
+      }
       className={cn(
         "h-full antialiased",
         "font-sans",
         geist.variable,
+        literata.variable,
         notoSans.variable,
         notoSerif.variable,
       )}

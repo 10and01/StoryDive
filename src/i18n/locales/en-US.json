@@ -178,7 +178,7 @@
     "shelf": "Shelf",
     "theater": "Theater",
     "court": "Court",
-    "branches": "My Branches",
+    "branches": "Branches",
     "hall": "Hall"
   },
   "shelf": {
@@ -193,9 +193,35 @@
     "searchPlaceholder": "Search works · title / author / keyword",
     "resultCount": "{{count}} works",
     "clearFilters": "Clear filters",
-    "empty": "No matching works — try another keyword or tag."
+    "empty": "No matching works — try another keyword or tag.",
+    "moreTags": "More",
+    "allTagsTitle": "All Categories",
+    "allTagsDesc": "Tap tags to filter — combine multiple, synced with the top row",
+    "done": "Done"
   },
   "reader": {
+    "typography": {
+      "open": "Text",
+      "title": "Reading Layout",
+      "description": "Changes apply instantly and are remembered",
+      "font": "Font",
+      "serifTag": "Serif",
+      "sansTag": "Sans",
+      "fontNotoSerif": "Noto Serif",
+      "fontWenkai": "LXGW WenKai",
+      "fontNotoSans": "Noto Sans",
+      "sample": "永和 Aa",
+      "fontSize": "Size",
+      "fontSizeSmaller": "Smaller text",
+      "fontSizeLarger": "Larger text",
+      "lineHeight": "Line Height",
+      "letterSpacing": "Letter Spacing",
+      "advanced": "Advanced",
+      "paraGap": "Paragraph Gap",
+      "reset": "Reset",
+      "licenseNote": "All fonts are open-licensed (SIL OFL) — copyright-safe",
+      "preview": "The story begins here — step into a famous scene, talk back, fork it, rewrite it, and walk out with your own ending. 永和九年，岁在癸丑。 0123456789"
+    },
     "graphToggle": "Story Graph",
     "scenePicker": "Where do you want to start the conversation?",
     "enterHint": "Enter point",

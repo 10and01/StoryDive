@@ -95,16 +95,16 @@ export default function ReasonPage({
           <article className="mb-6 grid gap-4" data-el="reason-chapters">
             {board.chapters.map((ch) => (
               <div key={ch.index}>
-                <h2 className="font-heading text-xl text-[color:var(--primary)]">{ch.title}</h2>
+                <h2 className="reader-chapter-title text-[color:var(--primary)]">{ch.title}</h2>
                 {ch.sceneImage && (
                   <div className="relative mt-2 aspect-[3/2] w-full overflow-hidden border border-[color:var(--border)]">
                     <Image src={ch.sceneImage} alt={ch.title} fill unoptimized className="object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#10110f]/50 to-transparent" />
                   </div>
                 )}
-                <div className="mt-2.5 grid gap-2">
+                <div className="mt-2.5 reader-flow">
                   {ch.paragraphs.map((p, pi) => (
-                    <p key={pi} className="font-heading text-[16px] leading-[1.9] text-[color:var(--rs-ink)]">
+                    <p key={pi} className="reader-typography text-[color:var(--rs-ink)]">
                       {p}
                     </p>
                   ))}

@@ -83,27 +83,27 @@ export function AppShell({
               const active = tab.match(pathname);
               const Icon = tab.icon;
               return (
-                <li key={tab.href} className="flex-1">
+                <li key={tab.href} className="min-w-0 flex-1">
                   <Link
                     href={tab.href}
                     data-el={`nav-${tab.href === "/" ? "shelf" : "branches"}`}
                     className={cn(
-                      "flex h-16 flex-col items-center justify-center gap-1 text-[11px] tracking-wide transition-colors",
+                      "flex h-16 flex-col items-center justify-center gap-1 text-[10px] leading-none transition-colors",
                       active
                         ? "text-[color:var(--primary)]"
                         : "text-[color:var(--muted-foreground)]",
                     )}
                   >
-                    <Icon className="h-5 w-5" aria-hidden />
-                    {t(tab.key)}
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                    <span className="max-w-full truncate">{t(tab.key)}</span>
                   </Link>
                 </li>
               );
             })}
-            <li className="flex items-center px-2">
+            <li className="flex items-center px-1">
               <UserBadge />
             </li>
-            <li className="flex items-center px-2">
+            <li className="flex items-center px-1">
               <LanguageSwitcher />
             </li>
           </ul>
