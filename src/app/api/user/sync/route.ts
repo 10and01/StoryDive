@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
-import { ZhihuAuthError } from "@/lib/zhihu/user-data";
+import { ZhihuAuthError, debugUserEndpoints } from "@/lib/zhihu/user-data";
 import { syncProfileFromZhihu, toFolloweeCards } from "@/lib/profile/sync";
 import { fetchUserFollowees } from "@/lib/zhihu/user-data";
 import type { FolloweeCard } from "@/lib/profile/types";
@@ -93,13 +93,25 @@ export async function DELETE(request: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-// GET /api/user/sync  轻量查询：画像同步状态 + 影子卡（前端决定同步入口/影子选择器）。
+// GET /api/user/sync            轻量查询：画像同步状态 + 影子卡（前端决定同步入口/影子选择器）。
+// GET /api/user/sync?debug=1   同步诊断：用当前会话 token 实测各数据接口的原始返回码，
+//                              用于排查「代用户访问」链路（不返回任何内容正文，只回码与计数）。
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
   if (auth.user.guest) {
     return NextResponse.json({ hasProfile: false, consent: false });
   }
+
+  if (request.nextUrl.searchParams.get("debug") === "1") {
+    const token = auth.user.oauthToken;
+    if (!token) {
+      return NextResponse.json({ debug: true, token: "missing" });
+    }
+    const probes = await debugUserEndpoints(token);
+    return NextResponse.json({ debug: true, userId: auth.user.id.slice(0, 10), probes });
+  }
+
   try {
     const row = await getUserProfileRow(auth.user.id);
     let followees: FolloweeCard[] = [];

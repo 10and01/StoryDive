@@ -239,3 +239,63 @@ export async function fetchZhihuUserBrief(oauthToken: string): Promise<ZhihuUser
     return null;
   }
 }
+
+// —— 诊断：原始返回码探测（/api/user/sync?debug=1 用）——
+// oauthGet 会把非 0 Code 静默降级为空列表，排障时需要看到真实错误码。
+export interface UserEndpointProbe {
+  endpoint: string;
+  httpStatus: number;
+  code: number | string | null; // developer.zhihu.com 用 Code，openapi 用 code
+  message: string;
+  itemCount: number;
+  firstTitle?: string;
+}
+
+export async function debugUserEndpoints(oauthToken: string): Promise<UserEndpointProbe[]> {
+  const headers = zhihuHeaders();
+  if (!headers) return [{ endpoint: "config", httpStatus: 0, code: null, message: "ZHIHU_ACCESS_SECRET 未配置", itemCount: 0 }];
+
+  const probe = async (
+    endpoint: string,
+    url: string,
+    withOAuth: boolean,
+    itemPath: string[],
+  ): Promise<UserEndpointProbe> => {
+    try {
+      const res = await fetch(url, {
+        headers: withOAuth ? { ...headers, "X-OAuth-Token": oauthToken } : { Authorization: `Bearer ${oauthToken}` },
+        cache: "no-store",
+      });
+      const raw = await res.text();
+      let body: Record<string, unknown> = {};
+      try {
+        body = JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        return { endpoint, httpStatus: res.status, code: null, message: `non-JSON: ${raw.slice(0, 80)}`, itemCount: 0 };
+      }
+      const code = (body.Code ?? body.code ?? null) as number | string | null;
+      const message = String(body.Message ?? body.message ?? body.data ?? "");
+      let items: unknown[] = [];
+      let cur: unknown = body;
+      for (const key of itemPath) {
+        cur = (cur as Record<string, unknown>)?.[key];
+        if (!cur) break;
+      }
+      if (Array.isArray(cur)) items = cur;
+      const firstTitle =
+        items.length && typeof items[0] === "object"
+          ? String((items[0] as Record<string, unknown>).Title ?? (items[0] as Record<string, unknown>).Fullname ?? "").slice(0, 30)
+          : undefined;
+      return { endpoint, httpStatus: res.status, code, message: message.slice(0, 80), itemCount: items.length, firstTitle };
+    } catch (error) {
+      return { endpoint, httpStatus: 0, code: null, message: `fetch error: ${String(error).slice(0, 80)}`, itemCount: 0 };
+    }
+  };
+
+  return Promise.all([
+    probe("user/contents", `${CONTENTS_ENDPOINT}?ContentType=answer&SortField=like_count&Limit=5`, true, ["Data", "Items"]),
+    probe("user/collections", `${CONTENTS_ENDPOINT.replace("/contents", "/collections")}?Limit=5`, true, ["Data", "Items"]),
+    probe("user/followees", `${FOLLOWEES_ENDPOINT}?Limit=5`, true, ["Data", "Items"]),
+    probe("openapi/user", "https://openapi.zhihu.com/user", false, []),
+  ]);
+}
