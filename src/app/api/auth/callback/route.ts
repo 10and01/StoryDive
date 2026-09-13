@@ -10,16 +10,51 @@ import { upsertUser } from "@/lib/db/queries";
 
 // GET /api/auth/callback —— 知乎授权回调：
 // 1) 读 authorization_code（兼容 code）→ 2) 换 access_token →
-// 3) 用 Access Secret + X-OAuth-Token 取用户昵称/头像 → 4) 下发签名会话 Cookie。
+// 3) 用黑客松基础信息接口取 hash_id/昵称/头像（旧内容条目法兜底）→
+// 4) 下发签名会话 Cookie。
 const TOKEN_ENDPOINT = "https://openapi.zhihu.com/access_token";
+const USER_PROFILE_ENDPOINT = "https://openapi.zhihu.com/user";
 const USER_CONTENTS_ENDPOINT = "https://developer.zhihu.com/api/v1/user/contents";
 
-async function fetchZhihuProfile(oauthToken: string): Promise<{ name: string | null; avatarUrl: string | null }> {
-  // 黑客松没有独立的“用户信息”端点（见 skill 文档协议待确认项），
-  // 从用户最新内容条目里提取 AuthorName / AuthorAvatar 作为展示信息；失败可容忍。
+interface ZhihuProfile {
+  id: string | null; // 平台稳定标识（hash_id 优先，uid 十进制串兜底）
+  name: string | null;
+  avatarUrl: string | null;
+}
+
+async function fetchZhihuProfile(oauthToken: string): Promise<ZhihuProfile> {
+  // 主路径：GET /user（见 skill 0.7.2 references/hackathon-user-profile-api.md）。
+  // 只需 OAuth token；uid 是 int64，用正则从原文无损提取十进制串，不经过 Number。
+  // 注意 HTTP 200 也可能带业务错误（历史示例 code:404 User don't exist），
+  // 必须确认存在有效用户标识才认定成功。
+  try {
+    const res = await fetch(USER_PROFILE_ENDPOINT, {
+      headers: { Authorization: `Bearer ${oauthToken}` },
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const raw = await res.text();
+      const idMatch =
+        raw.match(/"hash_id"\s*:\s*"([^"]+)"/) ?? raw.match(/"uid"\s*:\s*(\d+)/);
+      let name: string | null = null;
+      let avatarUrl: string | null = null;
+      try {
+        const data = JSON.parse(raw) as { fullname?: string; avatar_path?: string };
+        name = data.fullname?.trim() || null;
+        avatarUrl = data.avatar_path || null;
+      } catch {
+        // 响应非 JSON：标识以正则提取为准
+      }
+      if (idMatch) return { id: idMatch[1], name, avatarUrl };
+    }
+  } catch {
+    // 主路径失败 → 走下方兜底
+  }
+
+  // 兜底：从用户最新内容条目里提取 AuthorName / AuthorAvatar；失败可容忍。
   try {
     const secret = process.env.ZHIHU_ACCESS_SECRET;
-    if (!secret) return { name: null, avatarUrl: null };
+    if (!secret) return { id: null, name: null, avatarUrl: null };
     const res = await fetch(`${USER_CONTENTS_ENDPOINT}?Limit=1`, {
       headers: {
         Authorization: `Bearer ${secret}`,
@@ -29,14 +64,18 @@ async function fetchZhihuProfile(oauthToken: string): Promise<{ name: string | n
       },
       cache: "no-store",
     });
-    if (!res.ok) return { name: null, avatarUrl: null };
+    if (!res.ok) return { id: null, name: null, avatarUrl: null };
     const data = (await res.json()) as {
       Data?: { Items?: Array<{ AuthorName?: string; AuthorAvatar?: string }> };
     };
     const first = data.Data?.Items?.[0];
-    return { name: first?.AuthorName?.trim() || null, avatarUrl: first?.AuthorAvatar || null };
+    return {
+      id: null,
+      name: first?.AuthorName?.trim() || null,
+      avatarUrl: first?.AuthorAvatar || null,
+    };
   } catch {
-    return { name: null, avatarUrl: null };
+    return { id: null, name: null, avatarUrl: null };
   }
 }
 
@@ -51,7 +90,12 @@ export async function GET(request: NextRequest) {
   const url = request.nextUrl;
   const code = url.searchParams.get("authorization_code") ?? url.searchParams.get("code");
   if (!code) {
-    return NextResponse.redirect(new URL("/?auth_error=missing_code", request.url));
+    // 诊断：把知乎实际送回的完整查询串带回前端，便于核对平台回调契约
+    // （正常应含 authorization_code；为空多半是 redirect_uri 与登记地址不一致或授权被取消）
+    const raw = url.search || "(空)";
+    return NextResponse.redirect(
+      new URL(`/?auth_error=missing_code&raw=${encodeURIComponent(raw)}`, request.url),
+    );
   }
   if (!isZhihuOAuthConfigured()) {
     return NextResponse.redirect(new URL("/?auth_error=oauth_not_configured", request.url));
@@ -97,8 +141,10 @@ export async function GET(request: NextRequest) {
   }
 
   const profile = await fetchZhihuProfile(accessToken);
-  // 无独立用户 id 端点：以昵称哈希作为站内稳定 id（同名合并，跨登录稳定）
-  const userId = `zh-${(await sha256Hex(profile.name ?? code)).slice(0, 24)}`;
+  // hash_id/uid 是平台稳定标识；拿不到时退回昵称哈希（同名合并，跨登录稳定）
+  const userId = profile.id
+    ? `zh-${profile.id}`
+    : `zh-${(await sha256Hex(profile.name ?? code)).slice(0, 24)}`;
 
   const payload: SessionPayload = {
     id: userId,
