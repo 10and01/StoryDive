@@ -78,6 +78,4 @@ bun run deploy
 | `bun run lint` | ESLint |
 
 ## 说明
-
-- 故事配图仍托管于原 CDN（`cdn.eazo.ai`，公开可访问）；分享海报 canvas 需要同源像素，由 `/api/img-proxy` 代理。如需彻底迁移资产，将图片搬到 R2/自有存储后替换各 story 文件里的 `const P` / `const IMG` 基址即可。
 - MCP 端点 `/api/mcp` 提供站内工具协议入口（需会话）。
