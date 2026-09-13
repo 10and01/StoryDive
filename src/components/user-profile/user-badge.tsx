@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { LogIn, LogOut, UserRound, X } from "lucide-react";
+import { LogIn, LogOut, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUser } from "./user-provider";
 import type { UserProfile } from "@/lib/api/user-profile";
@@ -79,7 +79,7 @@ function BadgeTrigger({ user, onClick }: { user: UserProfile; onClick: () => voi
       className="flex items-center gap-2 rounded-full border border-border bg-background px-2.5 py-1.5 text-sm shadow-sm transition-shadow hover:shadow-md"
     >
       <Avatar user={user} size={24} />
-      <span className="max-w-[120px] truncate font-medium text-foreground">
+      <span className="hidden max-w-[120px] truncate font-medium text-foreground sm:inline">
         {user.name ?? user.email ?? user.id}
       </span>
     </button>
@@ -98,7 +98,7 @@ function DropdownPanel({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
+    <div className="absolute bottom-full right-0 z-50 mb-3 w-64 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
       <div className="flex items-start justify-between gap-3 px-4 py-4">
         <div className="flex items-center gap-3">
           <Avatar user={user} size={40} />

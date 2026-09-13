@@ -6,6 +6,7 @@ import { Library, GitBranch, Landmark, Sparkles, Scale } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/utils";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { UserBadge } from "@/components/user-profile/user-badge";
 
 const TABS = [
   { href: "/", key: "nav.shelf", icon: Library, match: (p: string) => p === "/" },
@@ -99,6 +100,9 @@ export function AppShell({
                 </li>
               );
             })}
+            <li className="flex items-center px-2">
+              <UserBadge />
+            </li>
             <li className="flex items-center px-2">
               <LanguageSwitcher />
             </li>
