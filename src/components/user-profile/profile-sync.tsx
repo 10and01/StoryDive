@@ -5,6 +5,7 @@
 // 授权过期（OAuth token 1 小时失效且无刷新）引导重走登录。
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, RefreshCw, Trash2, LogIn, Sparkles, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUser } from "./user-provider";
@@ -45,8 +46,7 @@ export function ProfileSyncSheet({ open, onClose }: { open: boolean; onClose: ()
 
   if (!open) return null;
 
-  async function sync() {
-    setBusy(true);
+  async function sync() {    setBusy(true);
     setError("");
     const res = await postSync(true, { followees: followeesOptIn });
     setBusy(false);
@@ -81,7 +81,9 @@ export function ProfileSyncSheet({ open, onClose }: { open: boolean; onClose: ()
     }
   }
 
-  return (
+  // portal 到 body：本组件挂在底部 Tab 栏内，而 Tab 栏的 backdrop-blur 会劫持
+  // 后代 fixed 定位（弹层被裁在底栏里、按钮不可见）——必须脱离其定位上下文。
+  return createPortal(
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4"
       onClick={onClose}
@@ -137,7 +139,8 @@ export function ProfileSyncSheet({ open, onClose }: { open: boolean; onClose: ()
           {t("common.close")}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
