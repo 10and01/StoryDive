@@ -42,7 +42,30 @@
     "shareGo": "去拉票",
     "shareDownload": "保存图片",
     "shareRetry": "生成失败，再试一次？",
-    "copied": "判决文案已复制，去粘贴分享吧"
+    "copied": "判决文案已复制，去粘贴分享吧",
+    "difficulty": {
+      "1": "初阶庭审",
+      "2": "进阶庭审",
+      "3": "高阶庭审"
+    },
+    "profileLine": "这是你的第 {{n}} 场庭审（累计投过 {{votes}} 次票）",
+    "leanHint": "你常站{{side}}，今天对面有备而来",
+    "sideRed": "红方",
+    "sideBlue": "蓝方",
+    "agentTitleRed": "故事党",
+    "agentTitleBlue": "逻辑党",
+    "turnRed": "烈盐 正在酝酿反击…",
+    "turnBlue": "析盐 正在推演逻辑…",
+    "idea": {
+      "generate": "生成知乎想法",
+      "generating": "正在起草想法…",
+      "edit": "已按知乎想法口吻起草，可自行编辑",
+      "copyGo": "复制并去知乎发布",
+      "share": "系统分享",
+      "copied": "想法文案已复制，正在打开知乎…",
+      "copyFailed": "复制失败，请手动长按复制",
+      "failed": "想法起草失败，再试一次？"
+    }
   },
   "theater": {
     "title": "盐灵剧场",
@@ -189,7 +212,9 @@
         "ensemblePlaceholder": "对在场众人说点什么…",
         "ensembleKeep": "并入这条群像支线",
         "ensembleTitle": "一场群像对戏"
-      }
+      },
+      "grounded": "引经据典",
+      "groundedHint": "开启后，{{name}}会化用知乎上的真实高赞回答来回应你"
     },
     "fork": {
       "title": "在此分叉",
@@ -280,5 +305,24 @@
     "gateDesc": "游客可自由浏览书架与阅读故事；对戏、分叉、改写、剧场、法庭等完整体验需登录知乎账号。",
     "gateCta": "知乎登录",
     "gateComingSoon": "知乎登录即将开放，敬请期待"
+  },
+  "companion": {
+    "fab": "刘看山伴读",
+    "title": "刘看山 · 伴读向导",
+    "reading": "正在读《{{title}}》· {{chapter}}",
+    "greeting": "嗨，我是刘看山！你现在读到《{{title}}》的「{{chapter}}」。想聊这段剧情、这个人物，还是听听知乎上的大家怎么说？",
+    "placeholder": "问看山点什么…",
+    "thinking": "看山在翻知乎…",
+    "failed": "看山走神了，再说一遍？",
+    "sources": "引用的真实回答",
+    "offline": "离线闲聊模式（未接知乎直答）",
+    "sleep": "看山睡着了，点我唤醒",
+    "send": "发送",
+    "hide": "把看山藏起来",
+    "show": "看山在这里，点我回来",
+    "newChapter": "翻到「{{chapter}}」了！新的一章，我陪你一起读～",
+    "farewell": "看山先退下啦～想我了随时点这里",
+    "back": "我回来啦！",
+    "short": "看山"
   }
 }

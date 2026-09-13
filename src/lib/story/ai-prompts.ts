@@ -1,7 +1,24 @@
 import type { Story, StoryCharacter } from "@/lib/story/types";
+import type { ZhihuSearchHit } from "@/lib/zhihu/search";
 
 // 正文已统一为弯引号风格，AI 产出也必须遵守同一套标点规范。
 const PUNCTUATION_RULE = "标点规范：台词、对白与引用一律使用中文弯引号“”，不要使用直角引号「」。";
+
+// 「引经据典」：把知乎站内检索到的真实回答注入对戏 prompt。
+// NPC 必须不出戏地化用并以 [n] 标注；UI 用随响应返回的 citations 渲染真实链接，
+// 不信任模型自己编的编号以外的任何链接信息。
+export function groundingBlock(hits: ZhihuSearchHit[]): string {
+  if (hits.length === 0) return "";
+  const lines = hits.map(
+    (h) =>
+      `[${h.n}] 《${h.title}》 · ${h.authorName} · 赞同 ${h.voteUpCount}\n${h.contentText.slice(0, 180)}`,
+  );
+  return `
+
+【知乎真实回答（站内检索，可化用，引用时标注编号）】
+以下是知乎上真实存在的热门回答摘要。若与当前话题相关，你可以以角色的立场化用其中的观点——先用自己的人设口气说出来，再在句末用 [1][2] 这样的编号标注化用了哪条；不相关就完全忽略；绝不编造不存在的编号，也绝不跳出角色变成“引用机器人”。
+${lines.join("\n\n")}`;
+}
 
 // Build the shared story context that grounds every AI call — the graph state
 // acts as the memory anchor that keeps the model consistent with the novel.
@@ -27,7 +44,7 @@ function nodeLabel(story: Story, id: string): string {
 }
 
 // 将分章正文展平为全局段落数组（与阅读器保持同一套 index 语义）
-function flatParagraphs(story: Story): string[] {
+export function flatParagraphs(story: Story): string[] {
   return story.chapters.flatMap((ch) => ch.paragraphs);
 }
 

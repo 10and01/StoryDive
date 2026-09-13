@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X, Send, Sparkles, Bookmark, Check, LogIn, Users } from "lucide-react";
+import { X, Send, Sparkles, Bookmark, Check, LogIn, Users, Quote } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Story, EnterPoint, BranchKind } from "@/lib/story/types";
 import { useBranches } from "./branch-store";
-import { generateStoryAi } from "@/lib/api/story";
+import { generateStoryAi, generateStoryAiDetail } from "@/lib/api/story";
+import type { ZhihuCitation } from "@/lib/api/zhihu-citation";
+import { ZhihuCitations } from "./zhihu-citations";
 import { cn } from "@/utils/utils";
 import { useUser } from "@/components/user-profile/user-provider";
 
@@ -15,6 +17,7 @@ type Mode = BranchKind;
 interface Msg {
   from: "user" | "character";
   text: string;
+  citations?: ZhihuCitation[];
 }
 
 type KeepFn = (title: string, body: string) => void;
@@ -303,6 +306,8 @@ function DialogueMode({
   >([]);
   const [thinking, setThinking] = useState(false);
   const [kept, setKept] = useState(false);
+  // 「引经据典」：开启后角色会化用知乎站内真实高赞回答（[n] 编号 → 引用 chip）
+  const [grounded, setGrounded] = useState(false);
   const character = present.find((c) => c.id === charId) ?? present[0];
 
   async function sendSolo() {
@@ -312,14 +317,20 @@ function DialogueMode({
     setInput("");
     setThinking(true);
     try {
-      const text = await generateStoryAi({
+      const { text, citations } = await generateStoryAiDetail({
         mode: "dialogue",
         storyId: story.id,
         characterId: character.id,
         anchorParagraph: point.paragraphIndex,
         userText,
+        grounding: grounded,
       });
-      if (text) setMsgs((m) => [...m, { from: "character", text }]);
+      if (text) {
+        setMsgs((m) => [
+          ...m,
+          { from: "character", text, citations: grounded ? citations : undefined },
+        ]);
+      }
     } finally {
       setThinking(false);
     }
@@ -490,12 +501,28 @@ function DialogueMode({
                 <Image src={character.portrait} alt={character.name} fill unoptimized className="object-cover object-top" />
               </span>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-[#d9ca9b]">{character.name}</p>
               <p className="truncate text-[11px] text-[color:var(--muted-foreground)]">
                 {character.role}
               </p>
             </div>
+            {/* 引经据典开关：角色会化用知乎真实高赞回答 */}
+            <button
+              onClick={() => setGrounded((v) => !v)}
+              aria-pressed={grounded}
+              title={t("reader.dialogue.groundedHint", { name: character.name })}
+              data-el="dialogue-grounded"
+              className={cn(
+                "flex shrink-0 items-center gap-1 border px-2 py-1 text-[11px] transition-colors",
+                grounded
+                  ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)]"
+                  : "border-[color:var(--border)] text-[color:var(--muted-foreground)]",
+              )}
+            >
+              <Quote className="h-3 w-3" />
+              {t("reader.dialogue.grounded")}
+            </button>
           </div>
           <div className="max-h-[38vh] overflow-y-auto border border-[color:var(--border)] bg-[#171817] p-2.5">
             {msgs.length === 0 && (
@@ -504,19 +531,18 @@ function DialogueMode({
               </p>
             )}
             <div className="grid gap-2">
-              {msgs.map((m, i) => (
-                <p
-                  key={i}
-                  className={cn(
-                    "text-sm leading-relaxed",
-                    m.from === "user"
-                      ? "text-right text-[color:var(--rs-ink)]"
-                      : "text-[#d9ca9b]",
-                  )}
-                >
-                  {m.text}
-                </p>
-              ))}
+              {msgs.map((m, i) =>
+                m.from === "user" ? (
+                  <p key={i} className="text-right text-sm leading-relaxed text-[color:var(--rs-ink)]">
+                    {m.text}
+                  </p>
+                ) : (
+                  <div key={i}>
+                    <p className="text-sm leading-relaxed text-[#d9ca9b]">{m.text}</p>
+                    <ZhihuCitations items={m.citations} />
+                  </div>
+                ),
+              )}
               {thinking && (
                 <p className="text-xs italic text-[color:var(--muted-foreground)]">
                   {t("reader.dialogue.thinking", { name: character.name })}

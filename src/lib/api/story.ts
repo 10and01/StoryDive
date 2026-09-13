@@ -1,5 +1,6 @@
 import { request } from "./request";
 import { AppAIClientUnavailableError } from "./app-ai-request";
+import type { ZhihuCitation } from "./zhihu-citation";
 import type { StoryBranch, BranchKind } from "@/lib/story/types";
 
 interface StoryAiInput {
@@ -10,10 +11,19 @@ interface StoryAiInput {
   anchorParagraph?: number;
   userText?: string;
   choice?: string;
+  // dialogue 专用「引经据典」：服务端检索知乎站内真实回答注入 prompt
+  grounding?: boolean;
 }
 
 /** Calls the App AI-backed story route. Returns "" if AI is unavailable. */
 export async function generateStoryAi(input: StoryAiInput): Promise<string> {
+  return (await generateStoryAiDetail(input)).text;
+}
+
+// 带引用明细的版本：grounding 命中时 citations 是知乎站内真实回答（[n] 编号对应）。
+export async function generateStoryAiDetail(
+  input: StoryAiInput,
+): Promise<{ text: string; citations: ZhihuCitation[] }> {
   try {
     const res = await request("/api/story/ai", {
       method: "POST",
@@ -21,10 +31,10 @@ export async function generateStoryAi(input: StoryAiInput): Promise<string> {
       body: JSON.stringify(input),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = (await res.json()) as { text?: string };
-    return data.text ?? "";
+    const data = (await res.json()) as { text?: string; citations?: ZhihuCitation[] };
+    return { text: data.text ?? "", citations: data.citations ?? [] };
   } catch (error) {
-    if (error instanceof AppAIClientUnavailableError) return "";
+    if (error instanceof AppAIClientUnavailableError) return { text: "", citations: [] };
     throw error;
   }
 }

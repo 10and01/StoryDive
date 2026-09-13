@@ -9,7 +9,10 @@ import {
   forkSystemPrompt,
   rewriteSystemPrompt,
   reasonSystemPrompt,
+  groundingBlock,
 } from "@/lib/story/ai-prompts";
+import { hasZhihuSecret } from "@/lib/zhihu/client";
+import { zhihuSearch, type ZhihuSearchHit } from "@/lib/zhihu/search";
 
 type Mode = "dialogue" | "ensemble" | "fork" | "rewrite" | "reason";
 
@@ -21,6 +24,8 @@ interface AiBody {
   anchorParagraph?: number;
   userText?: string;
   choice?: string;
+  // dialogue 专用「引经据典」：检索知乎站内真实回答注入 prompt，回复可化用并标 [n]
+  grounding?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -36,6 +41,8 @@ export async function POST(request: NextRequest) {
   const upto = Math.max(0, body.anchorParagraph ?? 0);
   let system = "";
   let userMsg = "";
+  // 「引经据典」命中的真实回答（随响应返回，供前端渲染引用 chip）
+  let citations: ZhihuSearchHit[] = [];
 
   if (mode === "reason") {
     const board = getReasonBoard(storyId);
@@ -55,6 +62,11 @@ export async function POST(request: NextRequest) {
       }
       system = dialogueSystemPrompt(story, character, upto);
       userMsg = body.userText ?? "（读者沉默地看着你）";
+      if (body.grounding && hasZhihuSecret()) {
+        const hits = await zhihuSearch(userMsg, 3);
+        system += groundingBlock(hits);
+        citations = hits;
+      }
     } else if (mode === "ensemble") {
       const ids = Array.isArray(body.characterIds) ? body.characterIds : [];
       const cast = story.characters.filter((c) => ids.includes(c.id));
@@ -87,7 +99,7 @@ export async function POST(request: NextRequest) {
       temperature: mode === "reason" ? 0.4 : 0.9,
     });
     const text = result.choices?.[0]?.message?.content ?? "";
-    return Response.json({ text });
+    return Response.json({ text, citations });
   } catch (error) {
     if (error instanceof AppAIUnavailableError) {
       return Response.json(

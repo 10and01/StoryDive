@@ -17,6 +17,7 @@ import { StoryCover } from "@/components/story/story-cover";
 import { ChapterMark } from "@/components/story/chapter-mark";
 import { CrocodileCrossing } from "@/components/story/crocodile-crossing";
 import { ReadingProgressBar } from "@/components/story/reading-progress-bar";
+import { Companion } from "@/components/story/companion";
 import { useBranches } from "@/components/story/branch-store";
 import { cn } from "@/utils/utils";
 
@@ -457,6 +458,9 @@ export default function ReaderPage({
           </div>
         )}
       </div>
+
+      {/* 刘看山伴读：知道当前书与阅读进度；放在 dock 之后以浮于其上 */}
+      <Companion storyId={story.id} paragraph={Math.max(0, revealed - 1)} />
 
       <EnterSheet
         key={`${activePoint?.paragraphIndex ?? "none"}-${talkCharId ?? ""}-${parentBranchId ?? ""}`}

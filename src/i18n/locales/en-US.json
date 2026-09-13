@@ -42,7 +42,30 @@
     "shareGo": "Rally votes",
     "shareDownload": "Save image",
     "shareRetry": "Failed to generate. Try again?",
-    "copied": "Verdict text copied — paste it anywhere"
+    "copied": "Verdict text copied — paste it anywhere",
+    "difficulty": {
+      "1": "Opening trial",
+      "2": "Advanced trial",
+      "3": "Master trial"
+    },
+    "profileLine": "Trial #{{n}} for you ({{votes}} votes cast so far)",
+    "leanHint": "You usually side with {{side}} — their opponent came prepared today",
+    "sideRed": "Red",
+    "sideBlue": "Blue",
+    "agentTitleRed": "Story Zealot",
+    "agentTitleBlue": "Logic Zealot",
+    "turnRed": "Lie Yan is brewing a counter…",
+    "turnBlue": "Xi Yan is deducing…",
+    "idea": {
+      "generate": "Draft a Zhihu post",
+      "generating": "Drafting…",
+      "edit": "Drafted in Zhihu-post style — edit freely",
+      "copyGo": "Copy & open Zhihu",
+      "share": "System share",
+      "copied": "Post copied — opening Zhihu…",
+      "copyFailed": "Copy failed — please copy manually",
+      "failed": "Drafting failed — try again?"
+    }
   },
   "theater": {
     "title": "Salt Spirit Theater",
@@ -189,7 +212,9 @@
         "ensemblePlaceholder": "Say something to everyone present…",
         "ensembleKeep": "Keep this ensemble branch",
         "ensembleTitle": "An ensemble scene"
-      }
+      },
+      "grounded": "Cite Zhihu",
+      "groundedHint": "When on, {{name}} weaves real high-vote Zhihu answers into the reply"
     },
     "fork": {
       "title": "Branch here",
@@ -280,5 +305,24 @@
     "gateDesc": "Guests can browse the shelf and read stories freely. Dialogue, branching, rewriting, theater and court require a Zhihu account.",
     "gateCta": "Sign in with Zhihu",
     "gateComingSoon": "Zhihu sign-in is coming soon"
+  },
+  "companion": {
+    "fab": "Liu Kanshan companion",
+    "title": "Liu Kanshan · Reading Guide",
+    "reading": "Reading “{{title}}” · {{chapter}}",
+    "greeting": "Hi, I'm Liu Kanshan! You're at “{{chapter}}” of “{{title}}”. Want to talk about this scene, the characters — or hear what Zhihu has to say?",
+    "placeholder": "Ask Kanshan anything…",
+    "thinking": "Kanshan is browsing Zhihu…",
+    "failed": "Kanshan dozed off — say that again?",
+    "sources": "Real answers cited",
+    "offline": "Offline chat mode (Zhihu Zhida not connected)",
+    "sleep": "Kanshan fell asleep — tap to wake him",
+    "send": "Send",
+    "hide": "Hide Kanshan",
+    "show": "Kanshan is here — tap to bring him back",
+    "newChapter": "On to “{{chapter}}”! I'll read this one with you~",
+    "farewell": "Kanshan stepping out — tap here anytime you miss me",
+    "back": "I'm back!",
+    "short": "Kanshan"
   }
 }
