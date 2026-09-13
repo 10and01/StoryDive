@@ -8,7 +8,24 @@ export interface CourtClaim {
   side: Side;
   headline: string; // 主张标题（旗号，一句话）
   argument: string; // 立论正文（这条改写为何成立）
+  agentName?: string; // 庭辩 Agent 名号（烈盐 / 析盐）；兜底局也带
 }
+
+// 庭辩难度档（依观众历史投票自适应）：
+// 1 初阶=直白两难；2 进阶=反转+利益纠葛；3 高阶=灰度决策、论辩书面化加重
+export type Difficulty = 1 | 2 | 3;
+
+// 庭辩 Agent：红方故事党「烈盐」vs 蓝方逻辑党「析盐」
+export interface CourtAgent {
+  side: Side;
+  name: string;
+  title: string; // 故事党 / 逻辑党
+}
+
+export const COURT_AGENTS: Record<Side, CourtAgent> = {
+  red: { side: "red", name: "烈盐", title: "故事党" },
+  blue: { side: "blue", name: "析盐", title: "逻辑党" },
+};
 
 // 一回合交锋：红蓝各一句针锋相对的驳火
 export interface CourtRound {
@@ -27,6 +44,28 @@ export interface CourtCase {
   rounds: CourtRound[]; // 交锋回合（建议 3）
   verdictHint: string; // 盐官引导投票的一句话
   createdAt: string; // ISO
+}
+
+// 一局双 Agent 对抗庭审（新流程）：立论由烈盐/析盐分别生成，
+// 交锋回合逐轮实时生成（各自能看到对方已说出口的全部话），服务端不落库。
+export interface CourtDuel {
+  id: string; // caseId（案由种子 + 当天），投票汇聚用
+  caseTitle: string;
+  brief: string; // 盐官开庭陈词
+  difficulty: Difficulty;
+  red: CourtClaim;
+  blue: CourtClaim;
+  verdictHint: string;
+}
+
+// 观众历史画像：由 court_votes 聚合，驱动难度与立场钩子
+export interface CourtProfile {
+  totalVotes: number;
+  red: number;
+  blue: number;
+  redShare: number; // 0-100
+  lean: Side | null; // 明显偏向（≥3 票且占比 ≥60%）才算
+  difficulty: Difficulty;
 }
 
 // 案由池：兜底时盐灵从这里取一个名场面/话题现开庭。

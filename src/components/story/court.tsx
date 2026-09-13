@@ -1,7 +1,13 @@
 "use client";
 
+// 名场面法庭 · 双 Agent 对抗版：
+// 盐官出开庭陈词 → 烈盐（故事党）/析盐（逻辑党）各自立论 → 3 回合逐轮真实交锋
+// （每回合红蓝两次实时生成，各自能看到对方已说出口的话）→ 观众投票 → 盐官总评。
+// 难度与立场钩子由观众历史投票画像自适应（court_votes 聚合，服务端算好随开局返回）。
+
 import { useUser } from "@/components/user-profile/user-provider";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import {
   Scale,
   Loader2,
@@ -15,75 +21,120 @@ import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
 import { LoginGate } from "@/components/user-profile/login-gate";
 import {
-  fetchCourtCase,
+  openDuel,
+  rebutDuel,
   fetchTally,
   castCourtVote,
   fetchVerdict,
   type CourtTally,
 } from "@/lib/api/court";
-import type { CourtCase } from "@/lib/court/types";
+import type { CourtDuel, CourtProfile, Side } from "@/lib/court/types";
+import { COURT_AGENTS } from "@/lib/court/types";
 import { CourtVerdictModal } from "@/components/story/court-verdict-modal";
+import { cn } from "@/utils/utils";
+
+const TOTAL_ROUNDS = 3;
+
+interface RoundLine {
+  side: Side;
+  text: string;
+}
 
 export function Court() {
   const { t } = useTranslation();
   const { user, login } = useUser();
-  const [trial, setTrial] = useState<CourtCase | null>(null);
+  const [duel, setDuel] = useState<CourtDuel | null>(null);
+  const [profile, setProfile] = useState<CourtProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [revealed, setRevealed] = useState(0); // 已揭开的交锋回合数
+  // 交锋记录：红蓝按回合交错（偶数位红、奇数位蓝），客户端持有并回传
+  const [transcript, setTranscript] = useState<RoundLine[]>([]);
+  const [pendingSide, setPendingSide] = useState<Side | null>(null);
   const [tally, setTally] = useState<CourtTally>({ red: 0, blue: 0, mine: null });
   const [voting, setVoting] = useState(false);
   const [verdict, setVerdict] = useState<string>("");
   const [verdictLoading, setVerdictLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const load = useCallback(
-    async (seed?: number) => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      setRevealed(0);
-      setVerdict("");
+  const load = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setTranscript([]);
+    setPendingSide(null);
+    setVerdict("");
+    try {
+      const data = await openDuel(Date.now());
+      setDuel(data.case);
+      setProfile(data.profile ?? null);
       try {
-        const c = await fetchCourtCase(seed);
-        setTrial(c);
-        try {
-          setTally(await fetchTally(c.id));
-        } catch {
-          setTally({ red: 0, blue: 0, mine: null });
-        }
+        setTally(await fetchTally(data.case.id));
       } catch {
-        setTrial(null);
-      } finally {
-        setLoading(false);
+        setTally({ red: 0, blue: 0, mine: null });
       }
-    },
-    [user],
-  );
+    } catch {
+      setDuel(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     const id = setTimeout(() => void load(), 0);
     return () => clearTimeout(id);
   }, [load]);
 
+  // 下一回合：红 → 蓝两次实时生成（蓝方能看到红方刚说的话）
+  async function nextRound() {
+    if (!duel || pendingSide || transcript.length >= TOTAL_ROUNDS * 2) return;
+    const roundNo = Math.floor(transcript.length / 2) + 1;
+    const base = {
+      caseTitle: duel.caseTitle,
+      brief: duel.brief,
+      redHeadline: duel.red.headline,
+      blueHeadline: duel.blue.headline,
+      difficulty: duel.difficulty,
+      lean: profile?.lean ?? null,
+    };
+    try {
+      setPendingSide("red");
+      const red = await rebutDuel({ ...base, transcript, side: "red", roundNo });
+      const withRed = [...transcript, { side: "red" as const, text: red.text }];
+      setTranscript(withRed);
+
+      setPendingSide("blue");
+      const blue = await rebutDuel({
+        ...base,
+        transcript: withRed,
+        side: "blue",
+        roundNo,
+      });
+      setTranscript([...withRed, { side: "blue" as const, text: blue.text }]);
+    } catch {
+      // 网络层失败：停在当前进度，可再点继续
+    } finally {
+      setPendingSide(null);
+    }
+  }
+
   async function vote(side: "red" | "blue") {
     if (!user) {
       login();
       return;
     }
-    if (!trial || voting) return;
+    if (!duel || voting) return;
     setVoting(true);
     try {
-      const next = await castCourtVote(trial.id, side);
+      const next = await castCourtVote(duel.id, side);
       setTally(next);
       // 首次投票后拉盐官总评
       setVerdictLoading(true);
       try {
         const v = await fetchVerdict({
-          caseTitle: trial.caseTitle,
-          redHeadline: trial.red.headline,
-          blueHeadline: trial.blue.headline,
+          caseTitle: duel.caseTitle,
+          redHeadline: duel.red.headline,
+          blueHeadline: duel.blue.headline,
           redVotes: next.red,
           blueVotes: next.blue,
         });
@@ -103,7 +154,7 @@ export function Court() {
   const total = tally.red + tally.blue;
   const redPct = total > 0 ? Math.round((tally.red / total) * 100) : 50;
   const bluePct = 100 - redPct;
-  const allRevealed = trial ? revealed >= trial.rounds.length : false;
+  const allRevealed = transcript.length >= TOTAL_ROUNDS * 2;
 
   if (!user) {
     return (
@@ -120,9 +171,30 @@ export function Court() {
           <Scale className="h-7 w-7 text-[color:var(--primary)]" />
           {t("court.title")}
         </h1>
-        <p className="mt-1 font-heading text-sm text-[#d9ca9b]">
-          {t("court.subtitle")}
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 font-heading text-sm text-[#d9ca9b]">
+          <span>{t("court.subtitle")}</span>
+          {duel && (
+            <span
+              className="border border-[color:var(--primary)]/50 px-1.5 py-0.5 text-[10px] tracking-[0.1em] text-[color:var(--primary)]"
+              data-el="court-difficulty"
+            >
+              {t(`court.difficulty.${duel.difficulty}`)}
+            </span>
+          )}
         </p>
+        {profile && profile.totalVotes > 0 && (
+          <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
+            {t("court.profileLine", { n: profile.totalVotes + 1, votes: profile.totalVotes })}
+            {profile.lean && (
+              <span>
+                {" · "}
+                {t("court.leanHint", {
+                  side: t(profile.lean === "red" ? "court.sideRed" : "court.sideBlue"),
+                })}
+              </span>
+            )}
+          </p>
+        )}
       </header>
 
       {loading ? (
@@ -130,7 +202,7 @@ export function Court() {
           <Loader2 className="h-6 w-6 animate-spin text-[color:var(--primary)]" />
           {t("court.opening")}
         </div>
-      ) : !trial ? (
+      ) : !duel ? (
         <div className="border border-dashed border-[color:var(--border)] p-8 text-center">
           <p className="mb-3 text-sm text-[color:var(--muted-foreground)]">
             {t("court.failed")}
@@ -145,55 +217,56 @@ export function Court() {
         </div>
       ) : (
         <div className="space-y-4" data-el="court-trial">
-          {/* 案由 */}
+          {/* 案由 + 盐官开庭陈词 */}
           <div className="border border-[color:var(--border)] bg-[#211f18] p-3.5">
             <div className="mb-1 flex items-center gap-1.5 text-[11px] tracking-[0.12em] text-[color:var(--primary)]">
               <Gavel className="h-3.5 w-3.5" />
               {t("court.caseLabel")}
             </div>
             <p className="font-heading text-lg leading-snug text-[#f2ead0]">
-              {trial.caseTitle}
+              {duel.caseTitle}
             </p>
             <p className="mt-1.5 text-[13px] leading-relaxed text-[#d9ca9b]">
-              {trial.brief}
+              {duel.brief}
             </p>
           </div>
 
-          {/* 红蓝两造主张 */}
+          {/* 烈盐 / 析盐 各自立论 */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ClaimCard side="red" headline={trial.red.headline} argument={trial.red.argument} />
-            <ClaimCard side="blue" headline={trial.blue.headline} argument={trial.blue.argument} />
+            <ClaimCard side="red" headline={duel.red.headline} argument={duel.red.argument} />
+            <ClaimCard side="blue" headline={duel.blue.headline} argument={duel.blue.argument} />
           </div>
 
-          {/* 交锋回合（逐条揭开） */}
+          {/* 逐轮交锋：每回合红→蓝实时生成 */}
           <div className="border border-[color:var(--border)] bg-[#1c1b15] p-3.5">
             <div className="mb-2 flex items-center gap-1.5 text-[11px] tracking-[0.12em] text-[color:var(--primary)]">
               <Swords className="h-3.5 w-3.5" />
               {t("court.clash")}
             </div>
             <div className="space-y-3">
-              {trial.rounds.slice(0, revealed).map((r, i) => (
-                <div key={i} className="space-y-1.5">
-                  <p className="text-[11px] text-[#8c8570]">
-                    {t("court.round", { n: i + 1 })}
-                  </p>
-                  <p className="border-l-2 border-red-500/60 pl-2.5 text-[13px] leading-relaxed text-[#f0d5cf]">
-                    {r.red}
-                  </p>
-                  <p className="border-l-2 border-sky-400/60 pl-2.5 text-[13px] leading-relaxed text-[#cfe0f0]">
-                    {r.blue}
-                  </p>
-                </div>
+              {transcript.map((line, i) => (
+                <RoundLineView
+                  key={i}
+                  line={line}
+                  roundNo={Math.floor(i / 2) + 1}
+                  showRound={line.side === "red"}
+                />
               ))}
+              {pendingSide && (
+                <p className="flex items-center gap-1.5 text-xs italic text-[color:var(--muted-foreground)]">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {pendingSide === "red" ? t("court.turnRed") : t("court.turnBlue")}
+                </p>
+              )}
             </div>
-            {!allRevealed && (
+            {!allRevealed && !pendingSide && (
               <button
-                onClick={() => setRevealed((n) => n + 1)}
+                onClick={() => void nextRound()}
                 className="mt-3 inline-flex items-center gap-1.5 border border-[color:var(--primary)]/50 px-3 py-2 text-xs text-[color:var(--primary)]"
                 data-el="court-next-round"
               >
                 <ChevronDown className="h-3.5 w-3.5" />
-                {revealed === 0 ? t("court.startClash") : t("court.nextRound")}
+                {transcript.length === 0 ? t("court.startClash") : t("court.nextRound")}
               </button>
             )}
           </div>
@@ -204,8 +277,8 @@ export function Court() {
               tally={tally}
               redPct={redPct}
               bluePct={bluePct}
-              redHeadline={trial.red.headline}
-              blueHeadline={trial.blue.headline}
+              redHeadline={duel.red.headline}
+              blueHeadline={duel.blue.headline}
               voting={voting}
               user={user}
               onVote={(s) => void vote(s)}
@@ -238,7 +311,7 @@ export function Court() {
           )}
 
           <button
-            onClick={() => void load(Date.now())}
+            onClick={() => void load()}
             className="inline-flex items-center gap-1.5 border border-[color:var(--primary)]/45 px-3 py-2 text-xs text-[color:var(--primary)]"
             data-el="court-next-case"
           >
@@ -248,12 +321,12 @@ export function Court() {
         </div>
       )}
 
-      {shareOpen && trial && (
+      {shareOpen && duel && (
         <CourtVerdictModal
           data={{
-            caseTitle: trial.caseTitle,
-            redHeadline: trial.red.headline,
-            blueHeadline: trial.blue.headline,
+            caseTitle: duel.caseTitle,
+            redHeadline: duel.red.headline,
+            blueHeadline: duel.blue.headline,
             redVotes: tally.red,
             blueVotes: tally.blue,
             verdict,
@@ -262,6 +335,90 @@ export function Court() {
         />
       )}
     </AppShell>
+  );
+}
+
+// 庭辩 Agent 头像：public/court/agents/red|blue.png（未放置图片时优雅回落为首字徽章）
+export function AgentAvatar({
+  side,
+  name,
+  size = 26,
+}: {
+  side: Side;
+  name: string;
+  size?: number;
+}) {
+  const [broken, setBroken] = useState(false);
+  const src = side === "red" ? "/court/agents/red.png" : "/court/agents/blue.png";
+  if (broken) {
+    return (
+      <span
+        style={{ width: size, height: size, fontSize: Math.round(size * 0.5) }}
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-full border font-heading",
+          side === "red"
+            ? "border-red-500/60 bg-red-500/15 text-red-300"
+            : "border-sky-400/60 bg-sky-400/15 text-sky-300",
+        )}
+      >
+        {name.slice(0, 1)}
+      </span>
+    );
+  }
+  return (
+    <span
+      style={{ width: size, height: size }}
+      className="relative inline-block shrink-0 overflow-hidden rounded-full border border-[color:var(--border)] bg-[#171817]"
+    >
+      <Image
+        src={src}
+        alt={name}
+        fill
+        unoptimized
+        onError={() => setBroken(true)}
+        className="object-cover"
+      />
+    </span>
+  );
+}
+
+function agentNameOf(side: Side): string {
+  return COURT_AGENTS[side].name;
+}
+
+function RoundLineView({
+  line,
+  roundNo,
+  showRound,
+}: {
+  line: RoundLine;
+  roundNo: number;
+  showRound: boolean;
+}) {
+  const { t } = useTranslation();
+  const name = agentNameOf(line.side);
+  const isRed = line.side === "red";
+  return (
+    <div className="flex items-start gap-2" data-el={`court-line-${line.side}`}>
+      <AgentAvatar side={line.side} name={name} size={24} />
+      <div className="min-w-0">
+        <p className="mb-0.5 text-[11px] text-[#8c8570]">
+          {showRound && <span className="mr-1.5">{t("court.round", { n: roundNo })}</span>}
+          <span className={isRed ? "text-red-300" : "text-sky-300"}>{name}</span>
+          <span className="ml-1 opacity-80">
+            · {t(isRed ? "court.agentTitleRed" : "court.agentTitleBlue")}
+          </span>
+        </p>
+        <p
+          className={cn(
+            "border-l-2 pl-2.5 text-[13px] leading-relaxed",
+            isRed ? "border-red-500/60 text-[#f0d5cf]" : "border-sky-400/60 text-[#cfe0f0]",
+          )}
+        >
+          {line.text}
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -276,18 +433,21 @@ function ClaimCard({
 }) {
   const { t } = useTranslation();
   const isRed = side === "red";
+  const name = agentNameOf(side);
   return (
     <div
       className={`border p-3 ${
-        isRed
-          ? "border-red-500/60 bg-red-500/8"
-          : "border-sky-400/60 bg-sky-400/8"
+        isRed ? "border-red-500/60 bg-red-500/8" : "border-sky-400/60 bg-sky-400/8"
       }`}
       data-el={`court-claim-${side}`}
     >
-      <p className={`mb-1 text-[11px] tracking-[0.12em] ${isRed ? "text-red-300" : "text-sky-300"}`}>
-        {isRed ? t("court.red") : t("court.blue")}
-      </p>
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <AgentAvatar side={side} name={name} size={22} />
+        <p className={`text-[11px] tracking-[0.12em] ${isRed ? "text-red-300" : "text-sky-300"}`}>
+          {name} · {t(isRed ? "court.agentTitleRed" : "court.agentTitleBlue")}
+          <span className="ml-1.5 opacity-70">{t(isRed ? "court.red" : "court.blue")}</span>
+        </p>
+      </div>
       <h3 className="font-heading text-base leading-snug text-[#f2ead0]">{headline}</h3>
       <p className="mt-1.5 text-[13px] leading-relaxed text-[#dcd0a6]">{argument}</p>
     </div>
