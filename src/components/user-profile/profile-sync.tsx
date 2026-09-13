@@ -37,6 +37,8 @@ export function ProfileSyncSheet({ open, onClose }: { open: boolean; onClose: ()
       setNeedReauth(false);
       setError("");
       setStatus(s);
+      setProfile(s?.profile ?? null);
+      setCardCount(s?.cardsCount ?? 0);
       setFolloweeCount(s?.followees?.length ?? 0);
     });
     return () => {
@@ -112,7 +114,7 @@ export function ProfileSyncSheet({ open, onClose }: { open: boolean; onClose: ()
               {t("profileSync.reauthButton")}
             </button>
           </div>
-        ) : status?.hasProfile || profile ? (
+        ) : status?.consent || status?.hasProfile || profile ? (
           <SyncedView
             profile={profile}
             cardCount={cardCount}
@@ -239,6 +241,14 @@ function SyncedView({
           time: syncedAt ? new Date(syncedAt).toLocaleString() : "—",
         })}
       </p>
+      {cardCount === 0 && followeeCount === 0 && (
+        <p className="rounded-lg border border-border bg-muted/40 p-2.5 text-xs leading-relaxed text-muted-foreground">
+          {t("profileSync.emptyZhihu")}
+        </p>
+      )}
+      {cardCount > 0 && !profile && (
+        <p className="text-xs text-muted-foreground">{t("profileSync.noProfileYet")}</p>
+      )}
       {followeeCount > 0 && (
         <p className="text-xs text-muted-foreground">
           {t("profileSync.followeesLine", { n: followeeCount })}

@@ -350,6 +350,8 @@
     "syncedLine": "{{n}} creations synced · {{time}}",
     "followeesOptIn": "Also authorize my follow list (public info only, powers “shadow NPCs”)",
     "followeesLine": "{{n}} followees synced (shadow cards)",
+    "emptyZhihu": "Sync finished — but your Zhihu has no quotable public answers or followees yet. Write a few answers and follow some people on Zhihu, then hit “Sync again” to light up your profile and precedent cards.",
+    "noProfileYet": "Precedent cards are in, but profile distillation didn't succeed — “Sync again” to retry.",
     "resync": "Sync again",
     "clear": "Wipe profile",
     "tone": "Voice",

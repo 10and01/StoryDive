@@ -18,6 +18,10 @@ export interface FolloweeCardDTO {
 export interface SyncStatus {
   hasProfile: boolean;
   hasCards?: boolean;
+  /** 已存的判例卡数量（重开弹窗时恢复显示用） */
+  cardsCount?: number;
+  /** 已提炼的画像（重开弹窗时恢复显示用） */
+  profile?: SyncProfile | null;
   consent: boolean;
   consentFollowees?: boolean;
   followees?: FolloweeCardDTO[];

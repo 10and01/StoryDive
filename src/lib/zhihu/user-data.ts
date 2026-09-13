@@ -25,7 +25,8 @@ interface ZhihuEnvelope {
   Data?: unknown;
 }
 
-// 统一发请求：区分鉴权失败（20001 → 重新授权）、频率/配额（30001/30002 → 静默降级）
+// 统一发请求：区分鉴权失败（20001 → 重新授权）、其余非 0 → 记录后静默降级
+//（空数据与接口异常在调用方都表现为空列表，这里留一行日志便于生产排查）。
 async function oauthGet(
   url: string,
   oauthToken: string,
@@ -38,12 +39,21 @@ async function oauthGet(
       cache: "no-store",
     });
     const data = (await res.json().catch(() => null)) as ZhihuEnvelope | null;
-    if (!res.ok || !data) return null;
+    if (!res.ok || !data) {
+      console.warn(`[zhihu/user-data] ${new URL(url).pathname} -> HTTP ${res.status}`);
+      return null;
+    }
     if (data.Code === 20001) throw new ZhihuAuthError();
-    if (data.Code !== 0) return null; // 30001/30002/30003 等：静默降级
+    if (data.Code !== 0) {
+      console.warn(
+        `[zhihu/user-data] ${new URL(url).pathname} -> Code ${data.Code} ${data.Message ?? ""}`,
+      );
+      return null; // 30001/30002/30003 等：静默降级
+    }
     return data;
   } catch (error) {
     if (error instanceof ZhihuAuthError) throw error;
+    console.warn(`[zhihu/user-data] ${new URL(url).pathname} -> fetch error`, error);
     return null;
   }
 }

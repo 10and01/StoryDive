@@ -111,9 +111,28 @@ export async function GET(request: NextRequest) {
         // 影子卡 JSON 损坏 → 空，重新同步可修复
       }
     }
+    let cardsCount = 0;
+    if (row?.contentsJson) {
+      try {
+        const cards = JSON.parse(row.contentsJson) as FolloweeCard[];
+        if (Array.isArray(cards)) cardsCount = cards.length;
+      } catch {
+        // 判例卡 JSON 损坏 → 0，重新同步可修复
+      }
+    }
+    let profile: unknown = null;
+    if (row?.profileJson) {
+      try {
+        profile = JSON.parse(row.profileJson);
+      } catch {
+        profile = null;
+      }
+    }
     return NextResponse.json({
       hasProfile: Boolean(row?.profileJson),
-      hasCards: Boolean(row?.contentsJson),
+      hasCards: cardsCount > 0,
+      cardsCount,
+      profile,
       consent: Boolean(row?.consentContents),
       consentFollowees: Boolean(row?.consentFollowees),
       followees,
