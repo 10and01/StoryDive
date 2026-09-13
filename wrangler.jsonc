@@ -27,5 +27,8 @@
   ],
   "observability": {
     "enabled": true
-  }
+  },
+  // 保留 dashboard「变量和机密」里配置的环境变量：wrangler deploy 默认会
+  // 清掉不在本文件里声明的变量，不设 true 则每次 git push 部署都会抹掉面板配置。
+  "keep_vars": true
 }
