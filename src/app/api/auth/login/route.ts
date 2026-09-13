@@ -7,7 +7,15 @@ export async function GET(request: NextRequest) {
   const appId = oauthAppId();
   const appKey = process.env.ZHIHU_OAUTH_APP_KEY;
   if (!appId || !appKey) {
-    return NextResponse.redirect(new URL("/?auth_error=oauth_not_configured", request.url));
+    // 诊断：带上 Worker 实际看到的变量存在性（只报有无，不含值），
+    // 用于区分「面板变量未保存/被部署清掉」与「单个变量缺失」。
+    const have = [appId && "app_id", appKey && "app_key"].filter(Boolean).join(",");
+    return NextResponse.redirect(
+      new URL(
+        `/?auth_error=oauth_not_configured&have=${have || "none"}`,
+        request.url,
+      ),
+    );
   }
 
   const redirectUri =

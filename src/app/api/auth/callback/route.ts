@@ -98,7 +98,15 @@ export async function GET(request: NextRequest) {
     );
   }
   if (!isZhihuOAuthConfigured()) {
-    return NextResponse.redirect(new URL("/?auth_error=oauth_not_configured", request.url));
+    const have = [
+      (process.env.ZHIHU_OAUTH_APP_ID || process.env.NEXT_PUBLIC_ZHIHU_OAUTH_APP_ID) && "app_id",
+      process.env.ZHIHU_OAUTH_APP_KEY && "app_key",
+    ]
+      .filter(Boolean)
+      .join(",");
+    return NextResponse.redirect(
+      new URL(`/?auth_error=oauth_not_configured&have=${have || "none"}`, request.url),
+    );
   }
 
   const appId = oauthAppId()!;
