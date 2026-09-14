@@ -11,8 +11,12 @@ export type CourtTally = {
 };
 
 // 开一局双 Agent 对抗庭：辩题由服务端按「全站每日一题」解析（知乎画像推荐 →
-// 本地池兜底），个性化在演绎层（观众画像 + 证据池）。seed 参数仅为旧签名兼容。
-export async function openDuel(seed?: number): Promise<{
+// 本地池兜底），个性化在演绎层（观众画像 + 证据池）。
+// opts.reroll = true 为「换一桩」：跳过每日一题，从案由池现取另一桩开庭
+// （excludeCaseId 传当前案完整 caseId，避免换到同一个）。
+export async function openDuel(
+  opts?: { seed?: number; reroll?: boolean; excludeCaseId?: string },
+): Promise<{
   case: CourtDuel;
   profile: CourtProfile | null;
   fallback?: boolean;
@@ -20,7 +24,11 @@ export async function openDuel(seed?: number): Promise<{
   const res = await request("/api/court/open", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(typeof seed === "number" ? { seed } : {}),
+    body: JSON.stringify({
+      ...(typeof opts?.seed === "number" ? { seed: opts.seed } : {}),
+      ...(opts?.reroll ? { reroll: true } : {}),
+      ...(opts?.excludeCaseId ? { excludeCaseId: opts.excludeCaseId.slice(0, 64) } : {}),
+    }),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = (await res.json()) as {

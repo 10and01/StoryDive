@@ -6,7 +6,7 @@
 // 难度与立场钩子由观众历史投票画像自适应（court_votes 聚合，服务端算好随开局返回）。
 
 import { useUser } from "@/components/user-profile/user-provider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Scale,
@@ -84,30 +84,45 @@ export function Court() {
   const [verdictLoading, setVerdictLoading] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  const load = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setTranscript([]);
-    setPendingSide(null);
-    setVerdict("");
-    try {
-      const data = await openDuel(Date.now());
-      setDuel(data.case);
-      setProfile(data.profile ?? null);
-      try {
-        setTally(await fetchTally(data.case.id));
-      } catch {
-        setTally({ red: 0, blue: 0, mine: null });
+  // 当前案 id 走 ref：load 若依赖 duel，换案后 effect 会用空参重跑覆盖掉换案结果
+  const duelIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    duelIdRef.current = duel?.id;
+  }, [duel]);
+
+  // reroll=true 为「换一桩」：排除当前案由，从池里现取另一桩开庭
+  const load = useCallback(
+    async (opts?: { reroll?: boolean }) => {
+      if (!user) {
+        setLoading(false);
+        return;
       }
-    } catch {
-      setDuel(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+      setLoading(true);
+      setTranscript([]);
+      setPendingSide(null);
+      setVerdict("");
+      setShareOpen(false);
+      try {
+        const data = await openDuel({
+          reroll: opts?.reroll,
+          // 服务端剥日期后缀得到池内 id，排除当前案避免换到同一个
+          excludeCaseId: opts?.reroll ? duelIdRef.current : undefined,
+        });
+        setDuel(data.case);
+        setProfile(data.profile ?? null);
+        try {
+          setTally(await fetchTally(data.case.id));
+        } catch {
+          setTally({ red: 0, blue: 0, mine: null });
+        }
+      } catch {
+        setDuel(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   useEffect(() => {
     const id = setTimeout(() => void load(), 0);
@@ -356,7 +371,7 @@ export function Court() {
           )}
 
           <button
-            onClick={() => void load()}
+            onClick={() => void load({ reroll: true })}
             className="inline-flex items-center gap-1.5 border border-[color:var(--primary)]/45 px-3 py-2 text-xs text-[color:var(--primary)]"
             data-el="court-next-case"
           >

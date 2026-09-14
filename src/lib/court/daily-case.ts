@@ -14,7 +14,7 @@ import {
   EMPTY_EVIDENCE,
   type EvidencePool,
 } from "@/lib/court/evidence";
-import { pickCase, type CourtCaseSeed } from "@/lib/court/types";
+import { pickCase, COURT_CASE_POOL, type CourtCaseSeed } from "@/lib/court/types";
 import {
   getDailyCaseRow,
   upsertDailyCase,
@@ -210,5 +210,32 @@ export async function poolCaseOfDay(day: string): Promise<DailyCase> {
     tagsJson: JSON.stringify(seed.tags),
     evidenceJson: daily.evidence.all.length ? JSON.stringify(daily.evidence) : null,
   }).catch(() => undefined);
+  return daily;
+}
+
+// 「换一桩」：跳过每日一题，从案由池现取另一桩名场面/话题开庭。
+// caseId 用池内稳定 id（不带日期后缀）——票仓跨天全站聚合，不会碎片化；
+// 不落 court_cases（该表按天主键，写会覆盖当日题），回合辩驳因此不带
+// 服务端证据注入，庭审内的证据展示不受影响。
+// excludeCaseId 传当前案的完整 caseId（如 zq-2026-09-14 / ak47-scene-2026-09-14），
+// 剥掉日期后缀得到池内 id 用于排除，避免换到同一个。
+export async function poolCaseReroll(excludeCaseId?: string): Promise<DailyCase> {
+  const excludeSeedId = excludeCaseId?.replace(/-\d{4}-\d{2}-\d{2}$/, "");
+  const candidates = COURT_CASE_POOL.filter((s) => s.id !== excludeSeedId);
+  const seed =
+    candidates[Math.floor(Math.random() * candidates.length)] ?? COURT_CASE_POOL[0];
+  const daily: DailyCase = {
+    ...seed,
+    id: seed.id,
+    caseId: seed.id,
+    source: "pool",
+    evidence: EMPTY_EVIDENCE,
+  };
+  try {
+    const evidence = await buildEvidenceFromSearch(seed.caseTitle);
+    if (evidence.all.length > 0) daily.evidence = evidence;
+  } catch {
+    // 证据失败 → 空池普通庭
+  }
   return daily;
 }

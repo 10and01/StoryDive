@@ -8,7 +8,7 @@ import {
   type Difficulty,
   type Side,
 } from "@/lib/court/types";
-import { resolveDailyCase, poolCaseOfDay, type DailyCase } from "@/lib/court/daily-case";
+import { resolveDailyCase, poolCaseOfDay, poolCaseReroll, type DailyCase } from "@/lib/court/daily-case";
 import { userCourtProfile } from "@/lib/db/queries/court";
 import { getUserProfileRow } from "@/lib/db/queries/profile";
 import {
@@ -85,14 +85,21 @@ export async function POST(request: NextRequest) {
   const auth = await requireAuth(request, { real: true });
   if (!auth.ok) return auth.response;
 
-  // body.seed 兼容旧客户端签名，新流程辩题由服务端按天解析，seed 不再参与选题
-  await request.json().catch(() => ({}));
+  // body.seed 兼容旧客户端签名；body.reroll=true 为「换一桩」：跳过每日一题，
+  // 从案由池现取另一桩开庭（excludeCaseId 传当前案完整 caseId，避免换到同一个）
+  const body = (await request.json().catch(() => ({}))) as {
+    seed?: number;
+    reroll?: boolean;
+    excludeCaseId?: string;
+  };
   const day = new Date().toISOString().slice(0, 10);
 
-  // 每日案由解析链（内含缓存/推荐/兜底，不抛异常）
+  // 案由解析：默认走每日一题链（内含缓存/推荐/兜底，不抛异常）；换桩走池内现取
   let daily: DailyCase | null = null;
   try {
-    daily = await resolveDailyCase();
+    daily = body.reroll
+      ? await poolCaseReroll(body.excludeCaseId)
+      : await resolveDailyCase();
   } catch (error) {
     console.error("[court/open] daily case resolution failed", error);
   }
