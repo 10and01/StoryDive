@@ -21,12 +21,12 @@ export function Showcase() {
   const hero = covers[0];
 
   return (
-    <div className="relative isolate min-h-[100svh] w-full overflow-hidden">
+    <div className="relative isolate h-[100svh] w-full overflow-x-hidden overflow-y-auto overscroll-contain">
       <div className="rs-grain" aria-hidden />
 
       <div
         data-el="showcase-poster"
-        className="mx-auto flex min-h-[100svh] w-full max-w-[520px] flex-col px-6 py-10"
+        className="mx-auto flex min-h-full w-full max-w-[1180px] flex-col px-5 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12"
       >
         {/* 顶部：出品标识 */}
         <div className="flex items-center justify-between text-[11px] tracking-[0.22em] text-[color:var(--muted-foreground)]">
@@ -37,7 +37,7 @@ export function Showcase() {
         </div>
 
         {/* 主标题 */}
-        <header className="mt-8">
+        <header className="mt-8 max-w-2xl lg:mt-14">
           <div className="text-[13px] tracking-[0.3em] text-[color:var(--rs-warm)]">
             RU · SHI
           </div>
@@ -50,8 +50,8 @@ export function Showcase() {
         </header>
 
         {/* 主视觉：封面拼贴 */}
-        <div className="relative mt-8">
-          <div className="grid grid-cols-4 gap-1.5">
+        <div className="relative mt-8 lg:mt-12">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5 lg:max-w-[920px]">
             {covers.map((s, i) => (
               <div
                 key={s.id}
@@ -84,7 +84,7 @@ export function Showcase() {
         </div>
 
         {/* 玩法亮点 */}
-        <ul className="mt-8 grid gap-2.5">
+        <ul className="mt-8 grid gap-2.5 lg:grid-cols-2 lg:gap-3">
           {FEATURES.map((f) => (
             <li
               key={f.k}
@@ -106,14 +106,14 @@ export function Showcase() {
         </ul>
 
         {/* 数据条 */}
-        <div className="mt-8 grid grid-cols-3 border border-[color:var(--border)] text-center">
+        <div className="mt-8 grid max-w-[620px] grid-cols-3 border border-[color:var(--border)] text-center">
           <Stat n={`${STORIES.length}+`} label="精选故事" />
           <Stat n="∞" label="平行结局" border />
           <Stat n="AI" label="角色对戏" />
         </div>
 
         {/* 底部行动 */}
-        <div className="mt-auto pt-9">
+        <div className="mt-10 pt-9 lg:mt-auto">
           <Link
             href="/"
             data-el="showcase-enter"

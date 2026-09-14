@@ -211,7 +211,7 @@ export function Court() {
 
   return (
     <AppShell>
-      <header className="mb-4 border-b border-[color:var(--sidebar-border)] pb-3">
+      <header className="mb-4 border-b border-[color:var(--sidebar-border)] pb-3" data-guide="court-page">
         <h1 className="flex items-center gap-2 font-heading text-[clamp(26px,8vw,44px)] leading-tight">
           <Scale className="h-7 w-7 text-[color:var(--primary)]" />
           {t("court.title")}

@@ -8,6 +8,7 @@ import { I18nProvider } from "@/components/i18n/i18n-provider";
 import { LocaleSyncEffect } from "@/components/i18n/locale-sync-effect";
 import { UserProvider } from "@/components/user-profile/user-provider";
 import { BranchProvider } from "@/components/story/branch-store";
+import { GuideProvider } from "@/components/onboarding/guide-provider";
 import { getServerLocale } from "@/lib/i18n/server-preference";
 import { getServerReaderTypography } from "@/lib/reader/server-typography";
 
@@ -94,7 +95,9 @@ export default async function RootLayout({
         <I18nProvider>
           <UserProvider>
             <LocaleSyncEffect />
-            <BranchProvider>{children}</BranchProvider>
+            <GuideProvider>
+              <BranchProvider>{children}</BranchProvider>
+            </GuideProvider>
             <Toaster />
           </UserProvider>
         </I18nProvider>

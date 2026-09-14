@@ -405,5 +405,45 @@
     "farewell": "Kanshan stepping out — tap here anytime you miss me",
     "back": "I'm back!",
     "short": "Kanshan"
+  },
+  "shell": {
+    "more": "More",
+    "moreTitle": "Ruju toolkit",
+    "moreDescription": "Intro, tutorial, account and language settings",
+    "productIntro": "About Ruju",
+    "restartGuide": "Replay the tutorial",
+    "accountTools": "Account & preferences"
+  },
+  "welcome": {
+    "eyebrow": "Zhihu stories · interactive narrative playground",
+    "mark": "Read first, then step in",
+    "title": "Ruju",
+    "subtitle": "More than reading — step into the story, talk with its characters, and write your own parallel ending.",
+    "description": "Light up a story relic, understand the scene, make a choice, and let a new branch grow into the theater and the court.",
+    "enter": "Start playing",
+    "explore": "See how it works",
+    "visualLabel": "Ruju story relic preview",
+    "heroCaption": "Light up a scene from here",
+    "visualStamp": "Read · Play · Write · Share",
+    "featuresLabel": "Ruju gameplay",
+    "features": ["Read the story and find your bearings", "Step into a scene and choose a stance", "Talk with characters in real time", "Keep every choice as a parallel branch", "Take it to the court and theater"],
+    "footer": "Guests can browse the shelf and read freely; Zhihu sign-in unlocks full interaction."
+  },
+  "guide": {
+    "ariaLabel": "Ruju getting started guide",
+    "progress": "Step {{n}} / {{total}}",
+    "skip": "Skip tutorial",
+    "previous": "Back",
+    "next": "Next",
+    "finish": "Done",
+    "steps": {
+      "shelf": { "title": "Start with a relic", "description": "Every relic on the shelf is a story. Light one up, understand the scene, then choose where to step in." },
+      "filters": { "title": "Find a story to play", "description": "Search by title, author or keyword, or filter by tags. “More” opens the complete category list." },
+      "reader": { "title": "Build the scene as you read", "description": "Adjust typography, switch reading pace, open the story graph, or call Liu Kanshan for company." },
+      "play": { "title": "Three ways to change the scene", "description": "Talk lets you answer a character, branch predicts another path, and rewrite adds your own idea to the story." },
+      "branches": { "title": "Your choices stay with you", "description": "Every interaction grows a branch. Continue it, make a share card, or publish it to the Hall for a relay." },
+      "court": { "title": "Take a side in court", "description": "Two agents argue a scene for three rounds, then the audience votes. Your stance becomes part of the experience." },
+      "theater": { "title": "There is a new theater every day", "description": "Salt Spirit Theater turns a Zhihu hot topic into a multi-ending mini-play. Make a few choices and see where it leads." }
+    }
   }
 }

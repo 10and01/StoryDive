@@ -221,7 +221,7 @@ export function EnterSheet({
           </div>
         )}
 
-        <div className="relative mb-3 grid grid-cols-3 gap-1.5" data-el="enter-actions">
+        <div className="relative mb-3 grid grid-cols-3 gap-1.5" data-el="enter-actions" data-guide="enter-actions">
           {(["dialogue", "fork", "rewrite"] as Mode[]).map((m) => (
             <button
               key={m}

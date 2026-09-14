@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 import { Library, GitBranch, Landmark, Sparkles, Scale } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/utils";
-import { LanguageSwitcher } from "@/components/i18n/language-switcher";
-import { UserBadge } from "@/components/user-profile/user-badge";
+import { ShellUtilityMenu } from "@/components/shell/shell-utility-menu";
 
 const TABS = [
   { href: "/", key: "nav.shelf", icon: Library, match: (p: string) => p === "/" },
@@ -59,6 +58,7 @@ export function AppShell({
       data-el="app-shell"
     >
       <div className="rs-grain" aria-hidden />
+      <ShellUtilityMenu />
       <div
         className="mx-auto w-full max-w-[1060px] flex-1 px-3.5"
         style={{
@@ -86,11 +86,12 @@ export function AppShell({
                 <li key={tab.href} className="min-w-0 flex-1">
                   <Link
                     href={tab.href}
-                    data-el={`nav-${tab.href === "/" ? "shelf" : "branches"}`}
+                    data-el={`nav-${tab.href === "/" ? "shelf" : tab.href.slice(1)}`}
+                    data-guide={`nav-${tab.href === "/" ? "shelf" : tab.href.slice(1)}`}
                     className={cn(
-                      "flex h-16 flex-col items-center justify-center gap-1 text-[10px] leading-none transition-colors",
+                      "relative flex h-16 flex-col items-center justify-center gap-1 border-t-2 border-transparent text-[10px] leading-none transition-colors",
                       active
-                        ? "text-[color:var(--primary)]"
+                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.06] text-[color:var(--primary)]"
                         : "text-[color:var(--muted-foreground)]",
                     )}
                   >
@@ -100,12 +101,6 @@ export function AppShell({
                 </li>
               );
             })}
-            <li className="flex items-center px-1">
-              <UserBadge />
-            </li>
-            <li className="flex items-center px-1">
-              <LanguageSwitcher />
-            </li>
           </ul>
         </nav>
       )}

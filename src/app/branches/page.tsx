@@ -15,7 +15,7 @@ export default function BranchesPage() {
 
   return (
     <AppShell>
-      <header className="mb-4 border-b border-[color:var(--sidebar-border)] pb-3">
+      <header className="mb-4 border-b border-[color:var(--sidebar-border)] pb-3" data-guide="branches-page">
         <h1 className="font-heading text-[clamp(28px,9vw,48px)] leading-tight">
           {t("branches.title")}
         </h1>

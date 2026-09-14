@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppShell } from "@/components/shell/app-shell";
 import { STORIES } from "@/lib/story/library";
 import { NONFICTION_SHELF } from "@/lib/story/reason";
 import { ShelfBoard, type Relic } from "@/components/story/shelf-board";
+import { WelcomeCover } from "@/components/onboarding/welcome-cover";
 
 // 非虚构作品的标签（原数据无 tags，这里按题材补充，用于标签化管理）
 const NONFICTION_TAGS: Record<string, string[]> = {
@@ -16,6 +18,18 @@ const NONFICTION_TAGS: Record<string, string[]> = {
 
 export default function ShelfPage() {
   const { t } = useTranslation();
+  const [welcomeVisible, setWelcomeVisible] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+    try {
+      setWelcomeVisible(localStorage.getItem("ruju:welcome-seen:v1") !== "1");
+    } catch {
+      setWelcomeVisible(false);
+    }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const relics: Relic[] = [
     ...STORIES.map((s) => ({
@@ -42,7 +56,8 @@ export default function ShelfPage() {
   ];
 
   return (
-    <AppShell>
+    <>
+      <AppShell>
       <header
         className="mb-3 grid grid-cols-[1fr_auto] items-end gap-3 border-b border-[color:var(--sidebar-border)] pb-2.5"
         data-el="shelf-masthead"
@@ -65,6 +80,8 @@ export default function ShelfPage() {
       </p>
 
       <ShelfBoard relics={relics} />
-    </AppShell>
+      </AppShell>
+      {welcomeVisible && <WelcomeCover onEnter={() => setWelcomeVisible(false)} />}
+    </>
   );
 }

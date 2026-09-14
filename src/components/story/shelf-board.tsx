@@ -71,7 +71,7 @@ export function ShelfBoard({ relics }: { relics: Relic[] }) {
   return (
     <div data-el="shelf-board-wrap">
       {/* 搜索框 */}
-      <div className="relative mb-2.5" data-el="shelf-search">
+      <div className="relative mb-2.5" data-el="shelf-search" data-guide="shelf-search">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--muted-foreground)]" />
         <input
           value={query}
@@ -166,6 +166,7 @@ export function ShelfBoard({ relics }: { relics: Relic[] }) {
                 <Link
                   href={relic.href}
                   data-el="relic"
+                  data-guide={filtered.indexOf(relic) === 0 ? "shelf-relic" : undefined}
                   aria-label={relic.title}
                   className="group relative grid min-h-[142px] grid-rows-[1fr_auto] gap-1 p-2 transition-transform active:scale-[0.97] sm:min-h-[170px]"
                 >

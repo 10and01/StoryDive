@@ -246,7 +246,7 @@ export default function ReaderPage({
             <ChevronLeft className="h-4 w-4" />
             {t("common.back")}
           </Link>
-          <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2" data-guide="reader-controls">
             <AmbientPlayer mood={story.ambientMood ?? "calm"} label={story.title} />
             <button
               onClick={() => setTypoOpen(true)}
