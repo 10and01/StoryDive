@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@/components/user-profile/user-provider";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
   Sparkles,
@@ -21,12 +21,14 @@ import { AppShell } from "@/components/shell/app-shell";
 import { fetchTheaterPlay } from "@/lib/api/theater";
 import { LoginGate } from "@/components/user-profile/login-gate";
 import { publishToWorkshop } from "@/lib/api/workshop";
+import { readDayCache, writeDayCache } from "@/lib/session-cache";
 import { CustomTheaterModal } from "@/components/story/theater-custom";
 import type {
   TheaterPlay,
   TheaterStep,
   TheaterEnding,
 } from "@/lib/theater/types";
+import { FALLBACK_PLAY } from "@/lib/theater/types";
 
 const TONE_RING: Record<TheaterEnding["tone"], string> = {
   good: "border-[color:var(--primary)] bg-[color:var(--primary)]/12",
@@ -38,6 +40,17 @@ const TONE_RING: Record<TheaterEnding["tone"], string> = {
 // 结局收藏册：本地记录「话题 → 已解锁的结局标题」，鼓励重玩换结局。
 const COLLECT_KEY = "theater_collection_v1";
 type Collection = Record<string, string[]>;
+
+// 当日会话缓存：这一局与进度（走到哪一步）原样留存，路由切换/刷新后直接
+// 恢复开演，不再重新生成；隔天自动失效回到「今日话题」。
+const SESSION_KEY = "theater_session_v1";
+interface TheaterSession {
+  play: TheaterPlay;
+  dailyPlay: TheaterPlay | null;
+  cursor: string;
+  trail: string[];
+  previewing: boolean; // 彩排场模式（今日正剧后台生成中）
+}
 
 function readCollection(): Collection {
   if (typeof window === "undefined") return {};
@@ -63,7 +76,7 @@ function collectEnding(topic: string, endingTitle: string): Collection {
 
 export function Theater() {
   const { t } = useTranslation();
-  const { user, login } = useUser();
+  const { user } = useUser();
   const [play, setPlay] = useState<TheaterPlay | null>(null);
   const [dailyPlay, setDailyPlay] = useState<TheaterPlay | null>(null); // 今日热榜局（定制局可切回）
   const [customOpen, setCustomOpen] = useState(false);
@@ -71,35 +84,113 @@ export function Theater() {
   const [cursor, setCursor] = useState<string>(""); // 当前 step/ending id
   const [trail, setTrail] = useState<string[]>([]); // 选择足迹（选项文案）
   const [collection, setCollection] = useState<Collection>({});
+  const [previewing, setPreviewing] = useState(false); // 彩排场（手写兜底局先行，正剧后台生成）
+  const [readyPlay, setReadyPlay] = useState<TheaterPlay | null>(null); // 正剧已备好待换场
+  const [fetchFailed, setFetchFailed] = useState(false);
+
+  // load 回调里要读最新进度判断观众是否已在彩排场做出选择，走 ref 避免闭包过期
+  const playRef = useRef(play);
+  const cursorRef = useRef(cursor);
+  const trailRef = useRef(trail);
+  useEffect(() => {
+    playRef.current = play;
+    cursorRef.current = cursor;
+    trailRef.current = trail;
+  }, [play, cursor, trail]);
 
   useEffect(() => {
     const id = setTimeout(() => setCollection(readCollection()), 0);
     return () => clearTimeout(id);
   }, []);
 
-  const load = useCallback(async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      const p = await fetchTheaterPlay();
-      setPlay(p);
-      setDailyPlay(p);
-      setCursor(p.start);
-      setTrail([]);
-    } catch {
-      setPlay(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+  // 换场到某一局（正剧到达 / 回到今日剧场共用）
+  const swapTo = useCallback((p: TheaterPlay, opts?: { scroll?: boolean }) => {
+    setPlay(p);
+    setDailyPlay(p);
+    setCursor(p.start);
+    setTrail([]);
+    setPreviewing(false);
+    setReadyPlay(null);
+    if (opts?.scroll && typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
+  // background=true 为后台静默生成（彩排场已在台上，不挡画面）
+  const load = useCallback(
+    async (opts?: { background?: boolean }) => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      const background = opts?.background ?? false;
+      if (!background) {
+        setLoading(true);
+        setPreviewing(false);
+        setReadyPlay(null);
+      }
+      setFetchFailed(false);
+      try {
+        const p = await fetchTheaterPlay();
+        // 观众还在彩排场开头没做选择：正剧一到就无缝换场；已开演则挂「开演」入口不硬切
+        const untouched =
+          playRef.current?.id === FALLBACK_PLAY.id &&
+          cursorRef.current === playRef.current.start &&
+          trailRef.current.length === 0;
+        if (background && !untouched) {
+          setReadyPlay(p);
+        } else {
+          swapTo(p);
+        }
+      } catch {
+        if (background) setFetchFailed(true);
+        else setPlay(null);
+      } finally {
+        if (!background) setLoading(false);
+      }
+    },
+    [user, swapTo],
+  );
+
+  // 当日首次进入：有缓存直接恢复（不重新生成）；没缓存先上彩排场，正剧后台生成
+  const bootedFor = useRef<string | null>(null);
   useEffect(() => {
-    const id = setTimeout(() => void load(), 0);
+    if (!user || bootedFor.current === user.id) return;
+    bootedFor.current = user.id;
+    const id = setTimeout(() => {
+      const cached = readDayCache<TheaterSession>(SESSION_KEY);
+      if (cached) {
+        setPlay(cached.play);
+        setDailyPlay(cached.dailyPlay ?? cached.play);
+        setCursor(cached.cursor || cached.play.start);
+        setTrail(cached.trail ?? []);
+        setPreviewing(cached.previewing);
+        setLoading(false);
+        // 上次离开时正剧还在搭台：续上后台生成
+        if (cached.previewing) void load({ background: true });
+        return;
+      }
+      setPlay({ ...FALLBACK_PLAY });
+      setDailyPlay(null);
+      setCursor(FALLBACK_PLAY.start);
+      setTrail([]);
+      setPreviewing(true);
+      setLoading(false);
+      void load({ background: true });
+    }, 0);
     return () => clearTimeout(id);
-  }, [load]);
+  }, [user, load]);
+
+  // 内容与进度落当日缓存：切页/刷新原样恢复
+  useEffect(() => {
+    if (!play) return;
+    writeDayCache<TheaterSession>(SESSION_KEY, {
+      play,
+      dailyPlay,
+      cursor,
+      trail,
+      previewing,
+    });
+  }, [play, dailyPlay, cursor, trail, previewing]);
 
   const step: TheaterStep | undefined = play?.steps.find((s) => s.id === cursor);
   const ending: TheaterEnding | undefined = play?.endings.find(
@@ -148,6 +239,42 @@ export function Theater() {
           </button>
         </p>
       </header>
+
+      {/* 彩排场提示条：正剧搭台中先看这局；好了以后一键换场 */}
+      {previewing && (
+        <div
+          className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 border border-dashed border-[color:var(--primary)]/40 bg-[color:var(--primary)]/5 px-3 py-2 text-[11px] text-[#d9ca9b]"
+          data-el="theater-rehearsal"
+        >
+          {fetchFailed ? (
+            <>
+              <span>{t("theater.rehearsalFailed")}</span>
+              <button
+                onClick={() => void load({ background: true })}
+                className="inline-flex items-center gap-1 border border-[color:var(--primary)]/50 px-2 py-0.5 text-[color:var(--primary)]"
+              >
+                <RefreshCw className="h-3 w-3" />
+                {t("theater.retry")}
+              </button>
+            </>
+          ) : (
+            <>
+              <Loader2 className="h-3 w-3 animate-spin text-[color:var(--primary)]" />
+              <span>{t("theater.rehearsalBadge")}</span>
+            </>
+          )}
+          {readyPlay && (
+            <button
+              onClick={() => swapTo(readyPlay, { scroll: true })}
+              className="ml-auto inline-flex items-center gap-1 bg-[color:var(--primary)] px-2 py-0.5 text-[#171817]"
+              data-el="theater-ready"
+            >
+              <Sparkles className="h-3 w-3" />
+              {t("theater.rehearsalReady")}
+            </button>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center text-sm text-[color:var(--muted-foreground)]">
@@ -250,6 +377,8 @@ export function Theater() {
         open={customOpen}
         onClose={() => setCustomOpen(false)}
         onPlay={(p) => {
+          setPreviewing(false); // 定制局是当下要玩的局，先撤掉彩排场状态
+          setReadyPlay(null);
           setPlay(p);
           setCursor(p.start);
           setTrail([]);
