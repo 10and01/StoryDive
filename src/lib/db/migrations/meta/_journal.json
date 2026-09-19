@@ -15,6 +15,20 @@
       "when": 1789285043611,
       "tag": "0001_fixed_shinko_yamashiro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789807600827,
+      "tag": "0002_tough_hydra",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1789809507065,
+      "tag": "0003_hesitant_gauntlet",
+      "breakpoints": true
     }
   ]
 }

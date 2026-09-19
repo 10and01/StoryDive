@@ -57,11 +57,12 @@ export function LanguageSwitcher() {
         className="hidden h-3.5 w-3.5 text-muted-foreground sm:block"
         aria-hidden
       />
-      <label htmlFor="app-locale" className="sr-only">
+      <label htmlFor="app-locale" className="sr-only" suppressHydrationWarning>
         {t("language.label")}
       </label>
       <select
         id="app-locale"
+        suppressHydrationWarning
         value={preference}
         onChange={(e) => void handleChange(e.target.value)}
         className="max-w-[140px] cursor-pointer truncate bg-transparent text-xs font-medium text-foreground outline-none"
@@ -71,9 +72,9 @@ export function LanguageSwitcher() {
             : resolvedLabel
         }
       >
-        <option value="system">{t("language.followSystem")}</option>
-        <option value="en-US">{t("language.enUS")}</option>
-        <option value="zh-CN">{t("language.zhCN")}</option>
+        <option value="system" suppressHydrationWarning>{t("language.followSystem")}</option>
+        <option value="en-US" suppressHydrationWarning>{t("language.enUS")}</option>
+        <option value="zh-CN" suppressHydrationWarning>{t("language.zhCN")}</option>
       </select>
     </div>
   );

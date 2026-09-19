@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpenText, Ellipsis, GraduationCap, Sparkles } from "lucide-react";
+import { BookOpenText, Ellipsis, GraduationCap, Sparkles, FolderKanban, Settings2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -41,10 +41,11 @@ export function ShellUtilityMenu() {
           onClick={() => setOpen(true)}
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border)] bg-[#171817]/90 px-2.5 py-1.5 text-xs text-[color:var(--muted-foreground)] shadow-[0_8px_22px_rgba(0,0,0,.2)] backdrop-blur transition-colors hover:border-[color:var(--primary)]/70 hover:text-[color:var(--primary)]"
           aria-label={t("shell.more")}
+          suppressHydrationWarning
           data-guide="shell-more"
         >
           <Ellipsis className="h-4 w-4" />
-          <span>{t("shell.more")}</span>
+          <span suppressHydrationWarning>{t("shell.more")}</span>
         </button>
       </div>
 
@@ -60,6 +61,22 @@ export function ShellUtilityMenu() {
             <SheetDescription>{t("shell.moreDescription")}</SheetDescription>
           </SheetHeader>
           <div className="grid gap-2 px-5 pb-6">
+            <Link
+              href="/works"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 border border-[color:var(--border)] px-3 py-3 text-sm text-[color:var(--rs-ink)] transition-colors hover:border-[color:var(--primary)]/60 hover:text-[color:var(--primary)]"
+            >
+              <FolderKanban className="h-4 w-4 text-[color:var(--primary)]" />
+              {t("shell.myWorks")}
+            </Link>
+            <Link
+              href="/settings/models"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 border border-[color:var(--border)] px-3 py-3 text-sm text-[color:var(--rs-ink)] transition-colors hover:border-[color:var(--primary)]/60 hover:text-[color:var(--primary)]"
+            >
+              <Settings2 className="h-4 w-4 text-[color:var(--primary)]" />
+              {t("shell.modelSettings")}
+            </Link>
             <Link
               href="/showcase"
               onClick={() => setOpen(false)}

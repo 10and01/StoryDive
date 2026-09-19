@@ -66,13 +66,14 @@ export function WelcomeCover({ onEnter }: { onEnter: () => void }) {
                 <ArrowRight className="h-4 w-4" />
               </button>
               <Link
-                href="/showcase"
+                href="/create"
                 onClick={explore}
                 className="inline-flex items-center gap-2 border border-[color:var(--border)] px-5 py-3 text-sm text-[color:var(--muted-foreground)] transition-colors hover:border-[color:var(--primary)]/70 hover:text-[color:var(--primary)]"
                 data-el="welcome-explore"
               >
-                {t("welcome.explore")}
+                {t("welcome.create")}
               </Link>
+              <Link href="/showcase" onClick={explore} className="text-xs text-[color:var(--muted-foreground)] underline-offset-4 hover:underline">{t("welcome.explore")}</Link>
             </div>
           </section>
 

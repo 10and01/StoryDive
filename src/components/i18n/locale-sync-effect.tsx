@@ -23,7 +23,11 @@ export function LocaleSyncEffect() {
 
     const handleLanguageChange = () => void syncSystemLocale();
     window.addEventListener("languagechange", handleLanguageChange);
-    return () => window.removeEventListener("languagechange", handleLanguageChange);
+    const timer = window.setTimeout(() => void syncSystemLocale(), 0);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("languagechange", handleLanguageChange);
+    };
   }, []);
 
   return null;

@@ -26,7 +26,7 @@ import {
 // 名场面殿堂：读者共写的平行走向。展示按热度排序的接力链，可展开盖楼、点赞、续写。
 export function Hall() {
   const { t } = useTranslation();
-  const { user, login } = useUser();
+  const { user } = useUser();
   const [posts, setPosts] = useState<WorkshopPost[]>([]);
   const [ready, setReady] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);

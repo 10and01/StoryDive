@@ -47,6 +47,7 @@ export default function Image() {
             }}
           >
             {isImageIcon(icon) ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={icon}
                 alt=""

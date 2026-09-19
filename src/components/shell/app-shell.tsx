@@ -2,36 +2,41 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Library, GitBranch, Landmark, Sparkles, Scale } from "lucide-react";
+import { Compass, Library, PenLine, Users, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/utils/utils";
 import { ShellUtilityMenu } from "@/components/shell/shell-utility-menu";
 
 const TABS = [
-  { href: "/", key: "nav.shelf", icon: Library, match: (p: string) => p === "/" },
   {
-    href: "/theater",
-    key: "nav.theater",
-    icon: Sparkles,
-    match: (p: string) => p.startsWith("/theater"),
+    href: "/discover",
+    key: "nav.discover",
+    icon: Compass,
+    match: (p: string) => p === "/" || p.startsWith("/discover"),
   },
   {
-    href: "/court",
-    key: "nav.court",
-    icon: Scale,
-    match: (p: string) => p.startsWith("/court"),
+    href: "/shelf",
+    key: "nav.shelf",
+    icon: Library,
+    match: (p: string) => p.startsWith("/shelf") || p.startsWith("/read") || p.startsWith("/reason"),
   },
   {
-    href: "/branches",
-    key: "nav.branches",
-    icon: GitBranch,
-    match: (p: string) => p.startsWith("/branches"),
+    href: "/create",
+    key: "nav.create",
+    icon: PenLine,
+    match: (p: string) => p.startsWith("/create") || p.startsWith("/works"),
   },
   {
-    href: "/hall",
-    key: "nav.hall",
-    icon: Landmark,
-    match: (p: string) => p.startsWith("/hall"),
+    href: "/community",
+    key: "nav.community",
+    icon: Users,
+    match: (p: string) => p.startsWith("/community") || p.startsWith("/hall") || p.startsWith("/theater") || p.startsWith("/court") || p.startsWith("/branches"),
+  },
+  {
+    href: "/settings/models",
+    key: "nav.settings",
+    icon: Settings,
+    match: (p: string) => p.startsWith("/settings"),
   },
 ];
 
@@ -86,8 +91,8 @@ export function AppShell({
                 <li key={tab.href} className="min-w-0 flex-1">
                   <Link
                     href={tab.href}
-                    data-el={`nav-${tab.href === "/" ? "shelf" : tab.href.slice(1)}`}
-                    data-guide={`nav-${tab.href === "/" ? "shelf" : tab.href.slice(1)}`}
+                    data-el={`nav-${tab.href.slice(1)}`}
+                    data-guide={`nav-${tab.href.slice(1)}`}
                     className={cn(
                       "relative flex h-16 flex-col items-center justify-center gap-1 border-t-2 border-transparent text-[10px] leading-none transition-colors",
                       active

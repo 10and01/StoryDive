@@ -6,7 +6,7 @@
   //   3. `wrangler secret put` 配置生产密钥（见 README「部署」一节）
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "storydive",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "compatibility_date": "2026-08-01",
   "compatibility_flags": ["nodejs_compat"],
   // 自定义域（国内可直访；workers.dev 被墙）。区激活后由 wrangler deploy 自动建 DNS + 证书
@@ -25,6 +25,29 @@
       "migrations_dir": "src/lib/db/migrations"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "WORK_UPLOADS",
+      "bucket_name": "ruju-work-uploads"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "STORY_GENERATION_QUEUE",
+        "queue": "ruju-story-generation"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "ruju-story-generation",
+        "max_batch_size": 1,
+        "max_batch_timeout": 5,
+        "max_retries": 3,
+        "dead_letter_queue": "ruju-story-generation-dlq"
+      }
+    ]
+  },
   "observability": {
     "enabled": true
   },

@@ -182,7 +182,11 @@
     }
   },
   "nav": {
+    "discover": "Discover",
     "shelf": "Shelf",
+    "create": "Create",
+    "community": "Community",
+    "settings": "Settings",
     "theater": "Theater",
     "court": "Court",
     "branches": "Branches",
@@ -428,7 +432,9 @@
     "moreDescription": "Intro, tutorial, account and language settings",
     "productIntro": "About Ruju",
     "restartGuide": "Replay the tutorial",
-    "accountTools": "Account & preferences"
+    "accountTools": "Account & preferences",
+    "myWorks": "My works",
+    "modelSettings": "Model services"
   },
   "welcome": {
     "eyebrow": "Zhihu stories · interactive narrative playground",
@@ -437,6 +443,7 @@
     "subtitle": "More than reading — step into the story, talk with its characters, and write your own parallel ending.",
     "description": "Light up a story relic, understand the scene, make a choice, and let a new branch grow into the theater and the court.",
     "enter": "Start playing",
+    "create": "Create your own theater",
     "explore": "See how it works",
     "visualLabel": "Ruju story relic preview",
     "heroCaption": "Light up a scene from here",
@@ -444,6 +451,25 @@
     "featuresLabel": "Ruju gameplay",
     "features": ["Read the story and find your bearings", "Step into a scene and choose a stance", "Talk with characters in real time", "Keep every choice as a parallel branch", "Take it to the court and theater"],
     "footer": "Guests can browse the shelf and read freely; Zhihu sign-in unlocks full interaction."
+  },
+  "creator": {
+    "common": { "signIn": "Sign in with Zhihu", "platformModel": "Platform default model", "copyFailed": "Could not copy", "backDiscover": "Back to Discover", "works": "My works", "creatorFallback": "Ruju creator" },
+    "status": { "draft": "Draft", "processing": "Generating", "ready": "Playable", "failed": "Needs attention", "archived": "Archived", "private": "Private", "unlisted": "Link only", "public": "Public" },
+    "card": { "emptyDescription": "The creator has not written a description yet.", "viewStatus": "View status", "continueEdit": "Continue editing", "playNow": "Play now", "copyDraft": "Copy as draft", "shareable": "Shareable" },
+    "discover": {
+      "kicker": "CREATOR THEATERS",
+      "title": "Read a story. Then step inside it.", "subtitle": "Play a public theater, or upload your own novel and turn its characters, relationships, and pivotal moments into an interactive experience.", "create": "Create my theater", "browseShelf": "Browse built-in shelf", "featured": "Today's pick · Built-in work", "startReading": "Start reading", "publicTitle": "Public story theaters", "publicSubtitle": "Every reader starts with an independent playthrough and grows their own branch.", "search": "Search titles, descriptions or tags", "loading": "Opening public works…", "empty": "No public works match", "emptyHint": "Be the first to turn a novel into a theater.", "copied": "Copied “{{title}}” to My works"
+    },
+    "create": {
+      "kicker": "STORY TO THEATER",
+      "steps": ["Upload", "Generate", "Preview", "Publish"], "loginTitle": "Turn your novel into a playable theater", "loginHint": "Zhihu sign-in is required to securely save files, versions, and authorship.", "loginAction": "Sign in to create", "title": "Create a story theater", "subtitle": "Each step has one main action. You can leave while it generates and resume later.", "resumeFailed": "Could not restore this draft", "uploadFailed": "Upload failed", "retryFailed": "Retry failed", "publishSuccess": "Work published", "publishFailed": "Publish failed", "selectFile": "Choose a novel file", "fileLimits": "TXT, Markdown or EPUB · up to 20 MiB", "textLimits": "Files over 500 chapters or 2,000,000 normalized characters get an actionable error", "optionalTitle": "Title (optional)", "titlePlaceholder": "Uses the filename by default", "optionalDescription": "Description (optional)", "descriptionPlaceholder": "Introduce the story in one sentence", "optionalTags": "Tags (optional)", "tagsPlaceholder": "Mystery, growth, urban", "advanced": "Advanced settings", "themePrompt": "Theme guidance", "themePlaceholder": "For example: emphasize growth and hard choices", "model": "Generation model", "uploadAction": "Upload and generate", "failedTitle": "Generation did not finish", "failedHint": "Check the file or model settings and try again.", "retry": "Generate again", "retryPlatform": "Retry with the platform model", "changeFile": "Change file", "usingModel": "Using {{model}} · You can safely leave and resume from My works.", "chapters": "{{count}} chapters", "characters": "{{count}} characters", "enterPoints": "{{count}} entry points", "charactersTitle": "Characters", "outlineTitle": "Chapters and entry points", "publishSettings": "Publish settings", "visibilityHint": "Private is visible only to you; link-only is for small groups; public works appear in Discover and may be copied.", "visibilityPrivate": "Private", "visibilityUnlisted": "Link only", "visibilityPublic": "Public", "rights": "I confirm that I have the right to upload and share this work at the selected visibility, and understand that AI will adapt it.", "publish": "Confirm and publish", "preview": "Preview first", "doneTitle": "Your theater is ready", "doneHint": "“{{title}}” is now {{visibility}}.", "workPage": "View work page",
+      "stages": { "queued": "Waiting in the generation queue", "parsing_source": "Parsing chapters and text", "extracting_story": "Extracting characters and relationships", "generating_theater": "Generating entry points and branches", "saving_version": "Saving a resumable version", "ready": "The theater is ready", "failed": "Generation needs attention", "fallback": "Getting ready" }
+    },
+    "works": { "filters": { "all": "All", "draft": "Drafts", "processing": "Generating", "ready": "Generated / published", "failed": "Failed" }, "loginTitle": "Sign in to see My works", "loginHint": "Resume uploads, generation, previews, and publishing after signing in.", "title": "My works", "subtitle": "Continue drafts, generation jobs, and published theaters here.", "new": "Create a new theater", "loading": "Organizing your creator desk…", "empty": "No works here yet", "emptyAction": "Upload your first novel →" },
+    "detail": { "loadFailed": "This work does not exist or is not accessible", "copied": "Copied as a private draft: {{title}}", "openFailed": "Could not open this work", "invalidLink": "The link may have expired or the creator may have unpublished it.", "label": "AI adaptation · User-uploaded content", "sourceCopy": "Copied from “{{title}}”", "emptyDescription": "The creator has not written a description yet.", "continueEdit": "Continue editing and publishing", "copyPrivate": "Copy to my private drafts", "progress": "Generation {{progress}}% · {{stage}}", "chapters": "Chapter preview", "characters": "Characters", "notice": "The source text was uploaded by a user and its interactive structure was AI-assisted. The uploader confirms copyright and publication responsibility. Public links stop working when the work is unpublished." },
+    "player": { "loadFailed": "Could not load the theater", "openFailed": "This theater cannot be opened right now", "workPage": "Work page", "enterPoint": "Entry point", "previous": "Previous", "continue": "Continue", "restart": "Play again", "guestHint": "Guests can finish the experience; sign in to save reading and choice progress." },
+    "community": { "title": "Community", "subtitle": "Public story theaters and Ruju's existing social play modes now share one home: play, copy, rewrite, and bring new choices back.", "copied": "Copied to your private drafts", "latest": "Latest public theaters", "latestHint": "Start in someone else's story, or copy it into a private version of your own.", "more": "Discover more →", "empty": "Public works will appear here.", "spaces": { "hall": ["Scene Hall", "Publish parallel paths, like them, and continue the relay."], "theater": ["Salt Spirit Theater", "Turn a Zhihu trending topic into a daily multi-ending play."], "court": ["Scene Court", "Debate a story's choices and let the audience decide."], "branches": ["My branches", "Continue the parallel endings you grew in built-in stories."] } },
+    "models": { "saved": "Model service encrypted and saved. Test the connection next.", "saveFailed": "Could not save", "testSuccess": "Connection successful", "testFailed": "Connection failed", "deleted": "Model service deleted; the old key can no longer be used", "deleteFailed": "Could not delete", "loginTitle": "Sign in to configure custom models", "loginHint": "API keys are encrypted on the server and never returned to the browser.", "title": "Model services", "subtitle": "Connect OpenAI-compatible APIs and choose a model per work. A custom-provider failure never silently switches providers or incurs another charge.", "add": "Add a service", "name": "Service name", "namePlaceholder": "For example: My OpenAI", "baseUrlHint": "Must use HTTPS and cannot point to localhost, private networks, or cloud metadata.", "model": "Model name", "modelPlaceholder": "For example: gpt-4.1-mini", "keyHint": "Visible only for this submission", "default": "Use as my default custom model", "save": "Encrypt and save", "savedTitle": "Saved services", "count": "{{count}} total", "defaultBadge": "Default", "active": "Connected", "failed": "Connection failed", "untested": "Untested", "test": "Test connection", "delete": "Delete", "empty": "No custom model is configured. You can still use the platform default.", "security": "API keys are stored with AES-GCM encryption and list APIs return masked values only. Model requests time out after 30 seconds, reject redirects, and limit response size. Deleted or rotated ciphertext is rejected by new jobs." }
   },
   "guide": {
     "ariaLabel": "Ruju getting started guide",

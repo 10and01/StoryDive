@@ -193,6 +193,7 @@ dist
 # Cloudflare / OpenNext
 .open-next/
 .wrangler/
+.wrangler-dryrun/
 
 # Mimosa local tool state
 .mimosa/

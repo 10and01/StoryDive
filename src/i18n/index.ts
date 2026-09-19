@@ -30,7 +30,10 @@ const resources = {
 // Fixed default for SSR — user preference is applied client-side after mount.
 void i18n.use(initReactI18next).init({
   resources,
-  lng: "en-US",
+  lng:
+    typeof document !== "undefined"
+      ? normalizeLocale(document.documentElement.lang) ?? "en-US"
+      : "en-US",
   fallbackLng: "en-US",
   supportedLngs: [...localeCodes],
   interpolation: { escapeValue: false },

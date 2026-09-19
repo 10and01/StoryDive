@@ -88,11 +88,6 @@ export function EnterSheet({
   // 面板内当前选中的情节位置（初始为外部传入的入局点）
   const [activePoint, setActivePoint] = useState<EnterPoint | null>(point);
 
-  // 外部传入的入局点变化时（重新打开面板），同步内部选中位置
-  useEffect(() => {
-    setActivePoint(point);
-  }, [point]);
-
   const active = activePoint ?? point;
   if (!active) return null;
 

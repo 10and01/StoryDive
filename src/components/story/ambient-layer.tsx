@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 /**
  * A restrained, painterly immersion layer that sits behind the reading
@@ -16,9 +16,6 @@ import { useEffect, useMemo, useState } from "react";
  * precision so they serialize to identical strings.
  */
 export function AmbientLayer({ count = 14 }: { count?: number }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
   const motes = useMemo(() => {
     // Round helper keeps serialized style strings stable/identical.
     const f = (n: number, p = 2) => Number(n.toFixed(p));
@@ -41,24 +38,23 @@ export function AmbientLayer({ count = 14 }: { count?: number }) {
   return (
     <div className="rs-ambient" aria-hidden>
       <div className="rs-ambient__halo" />
-      {mounted &&
-        motes.map((m, i) => (
-          <span
-            key={i}
-            className="rs-mote"
-            style={
-              {
-                left: `${m.left}vw`,
-                width: `${m.size}px`,
-                height: `${m.size}px`,
-                opacity: m.opacity,
-                "--rs-mote-dur": `${m.dur}s`,
-                "--rs-mote-delay": `${m.delay}s`,
-                "--rs-mote-sway": `${m.sway}px`,
-              } as React.CSSProperties
-            }
-          />
-        ))}
+      {motes.map((m, i) => (
+        <span
+          key={i}
+          className="rs-mote"
+          style={
+            {
+              left: `${m.left}vw`,
+              width: `${m.size}px`,
+              height: `${m.size}px`,
+              opacity: m.opacity,
+              "--rs-mote-dur": `${m.dur}s`,
+              "--rs-mote-delay": `${m.delay}s`,
+              "--rs-mote-sway": `${m.sway}px`,
+            } as React.CSSProperties
+          }
+        />
+      ))}
     </div>
   );
 }

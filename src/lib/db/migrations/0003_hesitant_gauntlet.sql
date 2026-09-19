@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `custom_work_versions_generation_job_uniq` ON `custom_work_versions` (`generation_job_id`);

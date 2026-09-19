@@ -147,49 +147,52 @@ export default function ReaderPage({
   // 从图谱页跳转过来时（/read/[id]?enter=N 或 ?talk=charId 或 ?enter=1&at=N&from=branchId）自动开启对应面板
   useEffect(() => {
     if (!story) return;
-    const rawEnter = searchParams.get("enter");
-    const rawTalk = searchParams.get("talk");
-    const rawAt = searchParams.get("at");
-    const rawFrom = searchParams.get("from");
-    if (rawTalk) {
-      const ep =
-        story.enterPoints.find((p) => p.presentCharacterIds.includes(rawTalk)) ??
-        story.enterPoints[0];
-      if (ep) {
-        setTalkCharId(rawTalk);
+    const timer = window.setTimeout(() => {
+      const rawEnter = searchParams.get("enter");
+      const rawTalk = searchParams.get("talk");
+      const rawAt = searchParams.get("at");
+      const rawFrom = searchParams.get("from");
+      if (rawTalk) {
+        const ep =
+          story.enterPoints.find((p) => p.presentCharacterIds.includes(rawTalk)) ??
+          story.enterPoints[0];
+        if (ep) {
+          setTalkCharId(rawTalk);
+          setParentBranchId(undefined);
+          setRevealed((n) => Math.max(n, ep.paragraphIndex + 1));
+          setActivePoint(ep);
+          setSheetOpen(true);
+        }
+        return;
+      }
+      if (rawEnter == null) return;
+      // 「接着往下玩」：at 指定回到哪一段，from 指定新支线要挂到哪条父支线下
+      if (rawFrom) {
+        const at = Number(rawAt);
+        // 选中 <= at 的最近入局点，回到那一幕继续
+        const candidates = story.enterPoints
+          .filter((p) => !Number.isFinite(at) || p.paragraphIndex <= at)
+          .sort((a, b) => b.paragraphIndex - a.paragraphIndex);
+        const ep = candidates[0] ?? story.enterPoints[0];
+        if (ep) {
+          setParentBranchId(rawFrom);
+          setTalkCharId(undefined);
+          setRevealed((n) => Math.max(n, ep.paragraphIndex + 1));
+          setActivePoint(ep);
+          setSheetOpen(true);
+        }
+        return;
+      }
+      const idx = Number(rawEnter);
+      const p = story.enterPoints[idx];
+      if (p) {
         setParentBranchId(undefined);
-        setRevealed((n) => Math.max(n, ep.paragraphIndex + 1));
-        setActivePoint(ep);
+        setRevealed((n) => Math.max(n, p.paragraphIndex + 1));
+        setActivePoint(p);
         setSheetOpen(true);
       }
-      return;
-    }
-    if (rawEnter == null) return;
-    // 「接着往下玩」：at 指定回到哪一段，from 指定新支线要挂到哪条父支线下
-    if (rawFrom) {
-      const at = Number(rawAt);
-      // 选中 <= at 的最近入局点，回到那一幕继续
-      const candidates = story.enterPoints
-        .filter((p) => !Number.isFinite(at) || p.paragraphIndex <= at)
-        .sort((a, b) => b.paragraphIndex - a.paragraphIndex);
-      const ep = candidates[0] ?? story.enterPoints[0];
-      if (ep) {
-        setParentBranchId(rawFrom);
-        setTalkCharId(undefined);
-        setRevealed((n) => Math.max(n, ep.paragraphIndex + 1));
-        setActivePoint(ep);
-        setSheetOpen(true);
-      }
-      return;
-    }
-    const idx = Number(rawEnter);
-    const p = story.enterPoints[idx];
-    if (p) {
-      setParentBranchId(undefined);
-      setRevealed((n) => Math.max(n, p.paragraphIndex + 1));
-      setActivePoint(p);
-      setSheetOpen(true);
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
     // 仅在 enter/talk/at/from 参数或故事变化时执行
   }, [searchParams, story]);
 

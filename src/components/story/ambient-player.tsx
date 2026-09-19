@@ -104,10 +104,11 @@ export function AmbientPlayer({
   }, [mood]);
 
   useEffect(() => {
+    const el = audioRef.current;
     return () => {
       clearFade();
       try {
-        audioRef.current?.pause();
+        el?.pause();
       } catch {
         /* ignore */
       }
