@@ -12,6 +12,7 @@ import {
 import { cn } from "@/utils/utils";
 import {
   READER_TYPOGRAPHY_RANGES,
+  type ReaderBgId,
   type ReaderFontId,
   type ReaderTypography,
 } from "@/lib/reader/typography";
@@ -45,6 +46,30 @@ const FONT_OPTIONS: {
     group: "sans",
     labelKey: "reader.typography.fontNotoSans",
     sampleClass: "font-sample-noto-sans",
+  },
+];
+
+/** 阅读背景选项：缩略卡直接用目标配色的底/墨，选中即所见 */
+const BG_OPTIONS: {
+  id: ReaderBgId;
+  labelKey: string;
+  tagKey: string;
+  swatch: string;
+  ink: string;
+}[] = [
+  {
+    id: "ink",
+    labelKey: "reader.typography.bgInk",
+    tagKey: "reader.typography.bgInkTag",
+    swatch: "linear-gradient(#171817, #10110f)",
+    ink: "rgba(237, 227, 193, 0.9)",
+  },
+  {
+    id: "white",
+    labelKey: "reader.typography.bgWhite",
+    tagKey: "reader.typography.bgWhiteTag",
+    swatch: "linear-gradient(#fbf8f0, #f2edde)",
+    ink: "rgba(74, 66, 50, 0.9)",
   },
 ];
 
@@ -142,6 +167,48 @@ export function TypographySheet({
               {t("reader.typography.preview")}
             </p>
           </div>
+
+          {/* 阅读背景：墨夜（默认）/ 纸白，缩略卡即目标配色 */}
+          <section data-el="typography-backgrounds">
+            <p className="mb-2 text-[11px] tracking-[0.14em] text-[color:var(--muted-foreground)]">
+              {t("reader.typography.background")}
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {BG_OPTIONS.map((opt) => {
+                const selected = typography.background === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => onChange({ background: opt.id })}
+                    data-el={`typography-bg-${opt.id}`}
+                    aria-pressed={selected}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 border px-1 py-3 transition-colors",
+                      selected
+                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.08]"
+                        : "border-[color:var(--border)]/70 hover:border-[color:var(--primary)]/50",
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className="flex h-10 w-16 flex-col justify-center gap-[5px] border border-black/20 px-2"
+                      style={{ background: opt.swatch }}
+                    >
+                      <span className="h-px w-full" style={{ background: opt.ink }} />
+                      <span className="h-px w-3/4" style={{ background: opt.ink, opacity: 0.7 }} />
+                      <span className="h-px w-1/2" style={{ background: opt.ink, opacity: 0.45 }} />
+                    </span>
+                    <span className="text-[11px] text-[color:var(--foreground)]">
+                      {t(opt.labelKey)}
+                    </span>
+                    <span className="text-[9px] tracking-[0.12em] text-[color:var(--muted-foreground)]">
+                      {t(opt.tagKey)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
           {/* 字体：衬线 / 无衬线分组 */}
           <section data-el="typography-fonts">

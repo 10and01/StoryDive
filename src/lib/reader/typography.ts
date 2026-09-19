@@ -2,11 +2,11 @@
  * 阅读排版设置：字体、字号、行距、字间距、段间距（纯共享模块，无 React）。
  *
  * 持久化双写 localStorage + cookie：cookie 由根布局（服务端）读取后直接
- * 渲染在 <html> 上（data-reader-font + --reader-* 变量），首帧即正确、
- * 全页面（含未挂 hook 的页面）无闪烁；localStorage 为客户端事实源。
- * 消费方见 globals.css 的 `.reader-typography` / `.reader-flow` /
- * `.reader-chapter-title`。hook 见 use-reader-typography.ts（client），
- * 服务端读取见 server-typography.ts。
+ * 渲染在 <html> 上（data-reader-font / data-reader-bg + --reader-* 变量），
+ * 首帧即正确、全页面（含未挂 hook 的页面）无闪烁；localStorage 为客户端
+ * 事实源。消费方见 globals.css 的 `.reader-typography` / `.reader-flow` /
+ * `.reader-chapter-title` 及 `html[data-reader-bg="white"]` 主题块。
+ * hook 见 use-reader-typography.ts（client），服务端读取见 server-typography.ts。
  */
 
 export const TYPOGRAPHY_STORAGE_KEY = "ruju.reader.typography.v1";
@@ -15,8 +15,15 @@ export type ReaderFontId = "noto-serif" | "wenkai" | "noto-sans";
 
 export const READER_FONT_IDS: ReaderFontId[] = ["noto-serif", "wenkai", "noto-sans"];
 
+/** 阅读背景：ink = 墨夜（默认，线上现有视觉），white = 纸白 */
+export type ReaderBgId = "ink" | "white";
+
+export const READER_BG_IDS: ReaderBgId[] = ["ink", "white"];
+
 export interface ReaderTypography {
   font: ReaderFontId;
+  /** 阅读背景主题（默认墨夜） */
+  background: ReaderBgId;
   /** 正文字号，px */
   fontSize: number;
   /** 行距倍数（无单位） */
@@ -35,9 +42,10 @@ export const READER_TYPOGRAPHY_RANGES = {
   paraGap: { min: 0.3, max: 1.8, step: 0.1 },
 } as const;
 
-/** 默认值与当前线上视觉一致：思源宋体 17px / 1.9 行距 / 无字间距 */
+/** 默认值与当前线上视觉一致：思源宋体 17px / 1.9 行距 / 无字间距 / 墨夜背景 */
 export const READER_TYPOGRAPHY_DEFAULTS: ReaderTypography = {
   font: "noto-serif",
+  background: "ink",
   fontSize: 17,
   lineHeight: 1.9,
   letterSpacing: 0,
@@ -70,6 +78,9 @@ export function sanitizeReaderTypography(raw: unknown): ReaderTypography {
     font: READER_FONT_IDS.includes(r.font as ReaderFontId)
       ? (r.font as ReaderFontId)
       : d.font,
+    background: READER_BG_IDS.includes(r.background as ReaderBgId)
+      ? (r.background as ReaderBgId)
+      : d.background,
     fontSize: coerceNumber(r.fontSize, range.fontSize, d.fontSize),
     lineHeight: coerceNumber(r.lineHeight, range.lineHeight, d.lineHeight),
     letterSpacing: coerceNumber(r.letterSpacing, range.letterSpacing, d.letterSpacing),
@@ -105,11 +116,12 @@ export function persistReaderTypography(typography: ReaderTypography): void {
   }
 }
 
-/** 把设置写成 <html> 上的 CSS 变量与字体标记，即时生效 */
+/** 把设置写成 <html> 上的 CSS 变量与主题标记，即时生效 */
 export function applyReaderTypography(typography: ReaderTypography): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
   root.dataset.readerFont = typography.font;
+  root.dataset.readerBg = typography.background;
   root.style.setProperty("--reader-font-size", `${typography.fontSize}px`);
   root.style.setProperty("--reader-line-height", `${typography.lineHeight}`);
   root.style.setProperty("--reader-letter-spacing", `${typography.letterSpacing}em`);

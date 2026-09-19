@@ -4,7 +4,7 @@ import { use, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useSearchParams } from "next/navigation";
-import { ChevronLeft, Share2, ChevronDown, ScrollText, Type } from "lucide-react";
+import { ChevronLeft, Share2, ChevronDown, ScrollText, Type, Sun, Moon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getStory } from "@/lib/story/library";
 import type { EnterPoint, StoryChapter } from "@/lib/story/types";
@@ -47,9 +47,10 @@ export default function ReaderPage({
   // 逐段推进式阅读：paced=true 时逐段淡入推进；顶部「全文展开」可切回传统整页
   const [paced, setPaced] = useState(true);
   const [revealed, setRevealed] = useState(1);
-  // 排版设置面板（字体 / 字号 / 行距 / 字间距 / 段间距）
+  // 排版设置面板（字体 / 字号 / 行距 / 字间距 / 段间距）+ 阅读背景（墨夜 / 纸白）
   const [typoOpen, setTypoOpen] = useState(false);
   const { typography, update, reset } = useReaderTypography();
+  const bgWhite = typography.background === "white";
   // 封面式入场：首次进入时铺满一层电影感标题幕，轻点或稍候后淡出显露正文
   const [coverDone, setCoverDone] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -226,7 +227,7 @@ export default function ReaderPage({
 
   return (
     <div
-      className="relative isolate min-h-[100svh] w-full"
+      className="relative isolate min-h-[100svh] w-full shrink-0"
       style={{
         paddingTop: "var(--safe-area-top, max(56px, env(safe-area-inset-top, 0px)))",
       }}
@@ -235,7 +236,7 @@ export default function ReaderPage({
       <div className="rs-grain" aria-hidden />
       <AmbientLayer />
       <ReadingProgressBar />
-      <div className="mx-auto w-full max-w-[680px] px-4 pb-24">
+      <div className="reader-surface mx-auto w-full max-w-[680px] px-4 pb-24" data-el="reader-surface">
         {/* top bar：窄屏时按钮组自动换行，避免溢出 */}
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <Link
@@ -248,6 +249,16 @@ export default function ReaderPage({
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2" data-guide="reader-controls">
             <AmbientPlayer mood={story.ambientMood ?? "calm"} label={story.title} />
+            <button
+              onClick={() => update({ background: bgWhite ? "ink" : "white" })}
+              aria-pressed={bgWhite}
+              aria-label={bgWhite ? t("reader.bg.toInk") : t("reader.bg.toWhite")}
+              title={bgWhite ? t("reader.bg.toInk") : t("reader.bg.toWhite")}
+              data-el="reader-bg-toggle"
+              className="flex items-center justify-center border border-[color:var(--border)] px-2 py-1 text-xs text-[color:var(--muted-foreground)] transition-colors hover:border-[color:var(--primary)]/60 hover:text-[color:var(--primary)]"
+            >
+              {bgWhite ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
+            </button>
             <button
               onClick={() => setTypoOpen(true)}
               data-el="reader-typography"
@@ -300,7 +311,7 @@ export default function ReaderPage({
           <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">
             {story.author}
           </p>
-          <p className="mt-2 font-heading text-sm leading-relaxed text-[#d9ca9b]">
+          <p className="mt-2 font-heading text-sm leading-relaxed text-[color:var(--rs-ink-soft)]">
             {story.logline}
           </p>
           {/* 版权归属：保留作者、作品名、work_id、来源（知乎盐言故事要求，不可删除） */}
@@ -341,8 +352,8 @@ export default function ReaderPage({
                           unoptimized
                           className="scale-105 object-cover transition-transform duration-[3000ms] ease-out"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#10110f] via-[#10110f]/40 to-transparent" />
-                        <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_60px_rgba(13,14,12,0.9)]" />
+                        <div className="absolute inset-0 rs-scene-fade" />
+                        <div className="rs-scene-vignette pointer-events-none absolute inset-0" />
                       </div>
                     )}
                   </div>
@@ -366,7 +377,7 @@ export default function ReaderPage({
                       <span className="block text-[10px] tracking-[0.14em] text-[color:var(--primary)]">
                         {t("reader.enterHint")}
                       </span>
-                      <span className="block truncate text-[13px] text-[#d9ca9b]">
+                      <span className="block truncate text-[13px] text-[color:var(--rs-ink-soft)]">
                         {ep.hint}
                       </span>
                     </span>
@@ -420,7 +431,7 @@ export default function ReaderPage({
 
       {/* persistent collapsible graph dock */}
       <div
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--border)] bg-[#10110f]/96 backdrop-blur"
+        className="reader-surface fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--border)] bg-[color:var(--rs-dock)] backdrop-blur"
         style={{
           paddingBottom: "var(--safe-area-bottom, max(34px, env(safe-area-inset-bottom, 0px)))",
         }}

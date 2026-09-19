@@ -65,8 +65,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getServerLocale();
-  // 服务端读取已保存的排版（cookie 双写），直接渲染在 <html> 上：
-  // 首帧即正确排版，无闪烁，且对未挂排版 hook 的页面（404 等）同样生效
+  // 服务端读取已保存的排版与阅读背景（cookie 双写），直接渲染在 <html> 上：
+  // 首帧即正确，无闪烁，且对未挂排版 hook 的页面（404 等）同样生效
   const typography = await getServerReaderTypography();
 
   return (
@@ -74,6 +74,7 @@ export default async function RootLayout({
       lang={locale}
       suppressHydrationWarning
       data-reader-font={typography.font}
+      data-reader-bg={typography.background}
       style={
         {
           "--reader-font-size": `${typography.fontSize}px`,

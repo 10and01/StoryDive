@@ -211,6 +211,11 @@
       "open": "Text",
       "title": "Reading Layout",
       "description": "Changes apply instantly and are remembered",
+      "background": "Background",
+      "bgInk": "Ink Night",
+      "bgInkTag": "Default",
+      "bgWhite": "Paper White",
+      "bgWhiteTag": "Bright",
       "font": "Font",
       "serifTag": "Serif",
       "sansTag": "Sans",
@@ -230,6 +235,10 @@
       "preview": "The story begins here — step into a famous scene, talk back, fork it, rewrite it, and walk out with your own ending. 永和九年，岁在癸丑。 0123456789"
     },
     "graphToggle": "Story Graph",
+    "bg": {
+      "toWhite": "Switch to paper-white reading background",
+      "toInk": "Switch to ink-night reading background"
+    },
     "scenePicker": "Where do you want to start the conversation?",
     "enterHint": "Enter point",
     "source": "Source",

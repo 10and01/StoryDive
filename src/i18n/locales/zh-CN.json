@@ -211,6 +211,11 @@
       "open": "排版",
       "title": "阅读排版",
       "description": "调整即刻生效，并自动记住你的偏好",
+      "background": "阅读背景",
+      "bgInk": "墨夜",
+      "bgInkTag": "默认",
+      "bgWhite": "纸白",
+      "bgWhiteTag": "白底",
       "font": "字体",
       "serifTag": "衬线",
       "sansTag": "无衬线",
@@ -230,6 +235,10 @@
       "preview": "入局一个名场面，对戏、分叉、改写，走出你的结局。永和九年，岁在癸丑，暮春之初。The story begins here — 0123456789。"
     },
     "graphToggle": "故事图谱",
+    "bg": {
+      "toWhite": "切换到白底阅读背景",
+      "toInk": "切换到墨夜阅读背景"
+    },
     "scenePicker": "想从哪个情节开聊？",
     "enterHint": "入局点",
     "source": "来源",

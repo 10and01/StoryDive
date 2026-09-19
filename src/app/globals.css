@@ -187,10 +187,14 @@ html[data-reader-font="noto-sans"] { --reader-font-family: var(--reader-font-san
   --chart-5: #76543d;
   --radius: 0rem;
   --rs-ink: #ede3c1;
+  --rs-ink-soft: #d9ca9b;
   --rs-warm: #c87745;
   --rs-cool: #7b9e99;
   --rs-line: #76543d;
   --rs-surface: #211f18;
+  --rs-dock: rgb(16 17 15 / 0.96);
+  --rs-scene-fade: #10110f;
+  --rs-scene-glow: rgba(13, 14, 12, 0.9);
   --sidebar: #171817;
   --sidebar-foreground: #ede3c1;
   --sidebar-primary: #d6c08e;
@@ -265,6 +269,94 @@ html[data-reader-font="noto-sans"] { --reader-font-family: var(--reader-font-san
   background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(237, 227, 193, 0.08) 4px),
     repeating-linear-gradient(90deg, transparent 0 5px, rgba(237, 227, 193, 0.05) 6px);
   transform: rotate(-2deg);
+}
+
+/* ------------------------------------------------------------------ *
+ * 纸白阅读模式（html[data-reader-bg="white"]，默认墨夜不受影响）。
+ * 变量只覆盖阅读正文容器（.reader-surface：顶栏 + 标题 + 正文流 +
+ * 底部图谱 dock）；对戏/节点详情/伴读气泡等深色浮层与封面入场不在此
+ * 容器内，不继承覆盖，保持墨夜配色。图谱星图画布自带深空底色，在
+ * 纸白 dock 中作为夜色内嵌，刻意不翻转。
+ * ------------------------------------------------------------------ */
+html[data-reader-bg="white"] .reader-surface {
+  --background: #f6f2e6;
+  --foreground: #2f2a20;
+  --card: #fdfbf3;
+  --card-foreground: #2f2a20;
+  --popover: #fdfbf3;
+  --popover-foreground: #2f2a20;
+  --primary: #8a6a2b;
+  --primary-foreground: #f8f5ea;
+  --secondary: #ece5d2;
+  --secondary-foreground: #2f2a20;
+  --muted: #ece5d2;
+  --muted-foreground: #6f6248;
+  --accent: #8a6a2b;
+  --accent-foreground: #f8f5ea;
+  --border: rgba(138, 106, 43, 0.38);
+  --input: rgba(138, 106, 43, 0.3);
+  --ring: #8a6a2b;
+  --rs-ink: #2f2a20;
+  --rs-ink-soft: #7a6430;
+  --rs-warm: #a85a28;
+  --rs-cool: #47736d;
+  --rs-surface: #fdfbf3;
+  --sidebar-border: rgba(138, 106, 43, 0.32);
+  --rs-dock: rgb(250 247 238 / 0.96);
+  --rs-scene-fade: #f5f1e4;
+  --rs-scene-glow: rgba(245, 241, 228, 0.8);
+  /* body resolves its foreground outside this scoped theme, so descendants
+     without an explicit text utility (for example the story title) would
+     otherwise keep inheriting the ink-theme cream color on a white page. */
+  color: var(--foreground);
+}
+
+/* The app root is a flex item inside the full-height body. Keep the reader
+   shell from shrinking back to the viewport height when a long chapter flows
+   past it; otherwise the grain layer stops mid-story and the dark body shows
+   through underneath the white reading theme. */
+html[data-reader-bg="white"] [data-el="reader-shell"] {
+  background: #f6f2e6;
+}
+
+/* 纸白画布：暖纸底 + 更淡的暖色晕染，颗粒纹理转为深色纸纤维 */
+html[data-reader-bg="white"] [data-el="reader-shell"] .rs-grain {
+  background: radial-gradient(circle at 20% 0%, rgba(200, 119, 69, 0.06), transparent 32%),
+    radial-gradient(circle at 90% 80%, rgba(123, 158, 153, 0.08), transparent 34%),
+    linear-gradient(#fbf8f0, #f2edde);
+}
+html[data-reader-bg="white"] [data-el="reader-shell"] .rs-grain::before {
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(138, 106, 43, 0.05) 4px),
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(138, 106, 43, 0.04) 6px);
+}
+
+/* 纸白下氛围光晕转为极淡暖调并停止呼吸，尘粒隐去，保证正文对比度
+   （只作用于氛围层本体，封面入场里的 halo 不受影响） */
+html[data-reader-bg="white"] [data-el="reader-shell"] .rs-ambient > .rs-ambient__halo {
+  animation: none;
+  opacity: 0.35;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(200, 119, 69, 0.1),
+    rgba(200, 119, 69, 0.04) 38%,
+    transparent 66%
+  );
+}
+html[data-reader-bg="white"] [data-el="reader-shell"] .rs-ambient > .rs-mote {
+  display: none;
+}
+
+/* 章节配图与页面底色的融合层：颜色随阅读背景主题翻转 */
+.rs-scene-fade {
+  background: linear-gradient(
+    to top,
+    var(--rs-scene-fade) 0%,
+    color-mix(in srgb, var(--rs-scene-fade) 40%, transparent) 50%,
+    transparent 100%
+  );
+}
+.rs-scene-vignette {
+  box-shadow: inset 0 0 60px var(--rs-scene-glow);
 }
 
 /* Breathing pin used on interactive story "enter points". */
