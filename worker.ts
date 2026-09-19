@@ -1,10 +1,13 @@
 // Custom OpenNext entry: preserve the generated Next fetch handler and add
 // the Cloudflare Queue consumer used by resumable story generation jobs.
+// @ts-ignore -- OpenNext generates this module after the Next.js type-check step.
 import openNextWorker from "./.open-next/worker.js";
+// @ts-ignore -- OpenNext generates this module after the Next.js type-check step.
 import { runWithCloudflareRequestContext } from "./.open-next/cloudflare/init.js";
 import { processGenerationJob } from "./src/lib/works/generation";
 import type { QueueGenerationMessage } from "./src/lib/works/types";
 
+// @ts-ignore -- OpenNext generates this module after the Next.js type-check step.
 export { DOQueueHandler, DOShardedTagCache, BucketCachePurge } from "./.open-next/worker.js";
 
 const worker = {
@@ -20,7 +23,7 @@ const worker = {
     await runWithCloudflareRequestContext(contextRequest, env, ctx, async () => {
       for (const message of batch.messages) {
         try {
-          await processGenerationJob(message.body);
+          await processGenerationJob(message.body, message.attempts);
           message.ack();
         } catch {
           message.retry({ delaySeconds: Math.min(300, 15 * Math.max(message.attempts, 1)) });

@@ -22,14 +22,18 @@ bun run dev            # opennextjs-cloudflare dev，本地注入 CF 绑定
 | `OPENAI_API_KEY` | AI 网关密钥（必填，AI 功能由此驱动） |
 | `OPENAI_BASE_URL` | 默认 `https://api.openai-next.com/v1`（OpenAI 兼容协议） |
 | `OPENAI_MODEL` | 默认 `deepseek-v4-flash` |
+| `MODEL_PROVIDER_ENCRYPTION_KEY` | 自定义模型 API Key 的 AES-GCM 加密密钥（生产必填，随机 32 字节） |
 | `SESSION_SECRET` | 会话 Cookie 的 HMAC 签名密钥（生产必填，随机 32+ 字节） |
 | `ZHIHU_ACCESS_SECRET` | 知乎开放平台 Access Secret（热榜 + 用户数据 API） |
 | `ZHIHU_OAUTH_APP_ID` / `ZHIHU_OAUTH_APP_KEY` | 知乎黑客松 OAuth 凭证（赛事页面分配） |
 | `ZHIHU_OAUTH_REDIRECT_URI` | 可选，默认 `{站点}/api/auth/callback`，需与赛事页面登记值完全一致 |
 | `NEXT_PUBLIC_APP_TITLE` / `NEXT_PUBLIC_APP_DESCRIPTION` | 站点元信息 |
 | `NEXT_PUBLIC_SITE_URL` | 可选，分享卡片的规范域名 |
+| `NEXT_PUBLIC_GUEST_EXPERIENCE` | 仅本地测试可设为 `open`；Cloudflare 生产构建强制使用预览模式 |
 
-> 未配置 OAuth 时，站点自动进入游客会话模式（middleware 发放签名游客身份），全部玩法可用。
+> 未配置 OAuth 时，站点自动进入游客会话模式（middleware 发放签名游客身份），可浏览公开内容和内置阅读体验。
+
+> 生产环境的创建、保存、生成、发布、复制和模型配置始终要求知乎真实登录；游客仅可浏览公开内容和内置阅读体验。
 
 ## 部署到 Cloudflare
 
@@ -39,20 +43,25 @@ npx wrangler login
 npx wrangler d1 create ruju-db
 # 把返回的 database_id 填入 wrangler.jsonc
 
-# 2. 应用远程迁移
+# 2. 创建上传文件 KV（免费额度；单文件上限由应用限制为 20 MiB）
+npx wrangler kv namespace create ruju-work-uploads
+# 把返回的 id 填入 wrangler.jsonc 的 WORK_UPLOADS 绑定
+
+# 3. 应用远程迁移
 bun run db:migrate:remote
 
-# 3. 配置生产密钥（Workers Secrets）
+# 4. 配置生产密钥（Workers Secrets）
 npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put MODEL_PROVIDER_ENCRYPTION_KEY
 npx wrangler secret put SESSION_SECRET
 npx wrangler secret put ZHIHU_ACCESS_SECRET
 npx wrangler secret put ZHIHU_OAUTH_APP_ID
 npx wrangler secret put ZHIHU_OAUTH_APP_KEY
 
-# 4. 首次部署时在 Cloudflare 控制台为 Worker 绑定自定义域名，并在赛事页面登记回调：
+# 5. 首次部署时在 Cloudflare 控制台为 Worker 绑定自定义域名，并在赛事页面登记回调：
 #    https://<你的域名>/api/auth/callback
 
-# 5. 构建 + 部署
+# 6. 构建 + 部署
 bun run deploy
 ```
 
@@ -62,7 +71,7 @@ bun run deploy
 - `src/lib/theater/hotlist.ts` — 知乎热榜（`developer.zhihu.com/api/v1/content/hot_list`）+ 「一天一取」缓存 + 按日确定性轮换；未配置密钥时降级本地话题池。
 - `src/lib/auth/` — 知乎黑客松 OAuth 登录（`/api/auth/login` → `openapi.zhihu.com/authorize` → `/api/auth/callback` 换 token）+ 签名会话 Cookie + 游客兜底（middleware）。
 - `src/lib/db/` — Drizzle（SQLite 方言）+ Cloudflare D1 绑定，惰性初始化。迁移用 `drizzle-kit generate` 生成、`wrangler d1 migrations apply` 应用。
-- `wrangler.jsonc` — Workers 入口 `.open-next/worker.js`、D1 绑定、静态资源。
+- `wrangler.jsonc` — Workers 入口、D1、KV 上传存储、生成队列和静态资源绑定。
 - `open-next.config.ts` — OpenNext 适配配置。
 
 ## 常用命令

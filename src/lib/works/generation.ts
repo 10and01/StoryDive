@@ -12,7 +12,7 @@ import {
   updateWorkOwned,
 } from "@/lib/db/queries/custom-works";
 import { createProviderClient } from "@/lib/models/provider-client";
-import { getSourceObject } from "./storage";
+import { getSourceObject, SourceObjectNotFoundError } from "./storage";
 import { parseNovelSource } from "./parser";
 import type { ParsedNovel, ProviderSnapshot, QueueGenerationMessage } from "./types";
 import { WorkInputError } from "./validation";
@@ -227,17 +227,36 @@ export async function providerSnapshotFor(ownerId: string, providerId?: string |
 export async function enqueueGeneration(message: QueueGenerationMessage): Promise<void> {
   const queue = getCloudflareContext().env.STORY_GENERATION_QUEUE;
   if (!queue) throw new Error("STORY_GENERATION_QUEUE binding is not configured");
-  await queue.send(message, { contentType: "json" });
+  // Workers KV is eventually consistent across regions. A short initial delay
+  // prevents a queue consumer in another region from racing the upload write.
+  await queue.send(message, { contentType: "json", delaySeconds: 10 });
 }
 
-export async function processGenerationJob(message: QueueGenerationMessage): Promise<void> {
+export async function processGenerationJob(message: QueueGenerationMessage, attempt = 1): Promise<void> {
   const job = await getGenerationJob(message.jobId);
   const work = await getWork(message.workId);
   if (!job || !work || job.workId !== work.id || job.status !== "queued") return;
+  let source: Awaited<ReturnType<typeof getSourceObject>>;
+  try {
+    source = await getSourceObject(work.sourceObjectKey);
+  } catch (error) {
+    // Keep the job queued while a fresh KV write propagates. On the fourth
+    // delivery, turn a persistent storage problem into an actionable failure.
+    if (attempt < 4) throw error;
+    const claimed = await claimGenerationJob(job.id);
+    if (!claimed) return;
+    await updateGenerationJob(job.id, {
+      status: "failed",
+      stage: "failed",
+      errorCode: error instanceof SourceObjectNotFoundError ? "source_not_available" : "source_storage_failed",
+      errorMessage: "暂时无法读取上传文件，请从草稿重新生成；如仍失败，请重新上传文件。",
+    });
+    await updateWorkOwned(work.id, work.ownerId, { status: "failed" });
+    return;
+  }
   const claimed = await claimGenerationJob(job.id);
   if (!claimed) return;
   try {
-    const source = await getSourceObject(work.sourceObjectKey);
     const data = source.body instanceof ArrayBuffer ? source.body : await new Response(source.body).arrayBuffer();
     const novel = await parseNovelSource(
       data,

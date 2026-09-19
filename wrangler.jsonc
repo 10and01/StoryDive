@@ -17,6 +17,10 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "vars": {
+    // 生产环境固定要求知乎真实登录后才能创建、保存和配置模型。
+    "GUEST_EXPERIENCE": "preview"
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -25,10 +29,12 @@
       "migrations_dir": "src/lib/db/migrations"
     }
   ],
-  "r2_buckets": [
+  // 上传小说使用 Workers KV。单值上限 25 MiB，覆盖产品的 20 MiB 上传限制，
+  // 且无需启用 R2 计费；此场景只在上传和生成时各读写一次。
+  "kv_namespaces": [
     {
       "binding": "WORK_UPLOADS",
-      "bucket_name": "ruju-work-uploads"
+      "id": "0a3e475d7d4d4b2484fedceaccffa425"
     }
   ],
   "queues": {
@@ -43,7 +49,7 @@
         "queue": "ruju-story-generation",
         "max_batch_size": 1,
         "max_batch_timeout": 5,
-        "max_retries": 3,
+        "max_retries": 4,
         "dead_letter_queue": "ruju-story-generation-dlq"
       }
     ]

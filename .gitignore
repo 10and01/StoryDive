@@ -194,6 +194,7 @@ dist
 .open-next/
 .wrangler/
 .wrangler-dryrun/
+.playwright-cli/
 
 # Mimosa local tool state
 .mimosa/

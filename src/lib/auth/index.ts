@@ -22,7 +22,8 @@ export type AuthResult =
 // const auth = await requireAuth(request); if (!auth.ok) return auth.response;
 // opts.real = true 时拒绝游客会话（401 + login_required），用于"体验类"动作接口；
 // 浏览预览类接口不带该参数，游客可正常访问。
-// 本地测试可用 NEXT_PUBLIC_GUEST_EXPERIENCE=open 放开游客全功能（生产不配置即为预览模式）。
+// 本地测试可用 NEXT_PUBLIC_GUEST_EXPERIENCE=open 放开游客全功能。
+// 生产权限只读取服务端 GUEST_EXPERIENCE，避免公开构建变量意外放开写操作。
 export async function requireAuth(
   request: Request,
   opts?: { real?: boolean },
@@ -37,7 +38,10 @@ export async function requireAuth(
       ),
     };
   }
-  const guestOpen = process.env.NEXT_PUBLIC_GUEST_EXPERIENCE === "open";
+  const guestOpen =
+    String(process.env.GUEST_EXPERIENCE) === "open" ||
+    (process.env.NODE_ENV !== "production" &&
+      process.env.NEXT_PUBLIC_GUEST_EXPERIENCE === "open");
   if (opts?.real && payload.guest && !guestOpen) {
     return {
       ok: false,

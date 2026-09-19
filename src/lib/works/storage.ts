@@ -6,9 +6,22 @@ export interface SourceObject {
   contentType?: string;
 }
 
-function bucket(): R2Bucket {
+interface SourceMetadata {
+  size: number;
+  contentType: string;
+  custom: Record<string, string>;
+}
+
+export class SourceObjectNotFoundError extends Error {
+  constructor() {
+    super("Source file not found");
+    this.name = "SourceObjectNotFoundError";
+  }
+}
+
+function store(): KVNamespace {
   const store = getCloudflareContext().env.WORK_UPLOADS;
-  if (!store) throw new Error("WORK_UPLOADS R2 binding is not configured");
+  if (!store) throw new Error("WORK_UPLOADS KV binding is not configured");
   return store;
 }
 
@@ -17,33 +30,35 @@ export async function putSourceObject(
   file: File,
   metadata: Record<string, string>,
 ): Promise<void> {
-  await bucket().put(key, file.stream(), {
-    httpMetadata: { contentType: file.type || "application/octet-stream" },
-    customMetadata: metadata,
+  await store().put(key, file.stream(), {
+    metadata: {
+      size: file.size,
+      contentType: file.type || "application/octet-stream",
+      custom: metadata,
+    } satisfies SourceMetadata,
   });
 }
 
 export async function getSourceObject(key: string): Promise<SourceObject> {
-  const object = await bucket().get(key);
-  if (!object) throw new Error("Source file not found");
+  const object = await store().getWithMetadata<SourceMetadata>(key, "stream");
+  if (!object.value) throw new SourceObjectNotFoundError();
   return {
-    body: object.body,
-    size: object.size,
-    contentType: object.httpMetadata?.contentType,
+    body: object.value,
+    size: object.metadata?.size ?? 0,
+    contentType: object.metadata?.contentType,
   };
 }
 
 export async function copySourceObject(fromKey: string, toKey: string): Promise<void> {
-  const source = await bucket().get(fromKey);
-  if (!source) throw new Error("Source file not found");
-  await bucket().put(toKey, source.body, {
-    httpMetadata: source.httpMetadata,
-    customMetadata: source.customMetadata,
+  const source = await store().getWithMetadata<SourceMetadata>(fromKey, "arrayBuffer");
+  if (!source.value) throw new SourceObjectNotFoundError();
+  await store().put(toKey, source.value, {
+    metadata: source.metadata,
   });
 }
 
 export async function deleteSourceObject(key: string): Promise<void> {
-  await bucket().delete(key);
+  await store().delete(key);
 }
 
 export function sourceObjectKey(ownerId: string, format: string): string {
