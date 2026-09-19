@@ -93,7 +93,7 @@ export default async function RootLayout({
       )}
     >
       <body className="h-full flex flex-col">
-        <I18nProvider>
+        <I18nProvider initialLocale={locale}>
           <UserProvider>
             <LocaleSyncEffect />
             <GuideProvider>
