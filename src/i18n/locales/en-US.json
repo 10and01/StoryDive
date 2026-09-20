@@ -262,7 +262,7 @@
     "actions": {
       "dialogue": "Talk",
       "fork": "Branch",
-      "rewrite": "Rewrite"
+      "rewrite": "Branch / Rewrite"
     },
     "dialogue": {
       "title": "Talk with {{name}}",
@@ -299,6 +299,11 @@
       "running": "Simulating a parallel path…",
       "keep": "Save this branch",
       "kept": "Branch saved"
+    },
+    "forkRewrite": {
+      "presetLabel": "Choose a key branch",
+      "customLabel": "or write your own",
+      "forkBadge": "Parallel branch"
     },
     "rewrite": {
       "title": "Inject your idea",

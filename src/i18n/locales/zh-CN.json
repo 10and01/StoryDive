@@ -262,7 +262,7 @@
     "actions": {
       "dialogue": "对戏",
       "fork": "分叉",
-      "rewrite": "改写"
+      "rewrite": "分叉改写"
     },
     "dialogue": {
       "title": "与 {{name}} 对戏",
@@ -299,6 +299,11 @@
       "running": "正在推演平行走向…",
       "keep": "收藏这条分支",
       "kept": "分支已收藏"
+    },
+    "forkRewrite": {
+      "presetLabel": "选择一个关键分叉",
+      "customLabel": "或者，自由改写",
+      "forkBadge": "平行分支"
     },
     "rewrite": {
       "title": "注入你的脑洞",

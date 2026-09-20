@@ -13,7 +13,7 @@ import { ZhihuCitations } from "./zhihu-citations";
 import { cn } from "@/utils/utils";
 import { useUser } from "@/components/user-profile/user-provider";
 
-type Mode = BranchKind;
+type Mode = "dialogue" | "rewrite";
 
 interface Msg {
   from: "user" | "character";
@@ -168,14 +168,14 @@ export function EnterSheet({
         )}
         {/* 可滚动内容区：内容多时（群戏/长入局点）也能完整展开 */}
         <div className="relative flex-1 overflow-y-auto px-4 pb-6 pt-4" data-el="enter-sheet-scroll">
-        <div className="relative mb-2 flex items-start justify-between gap-2">
-          <p className="font-heading text-base leading-snug text-[#e7dcae]">
+        <div className="relative mb-4 flex items-start justify-between gap-3">
+          <p className="min-w-0 flex-1 font-heading text-[clamp(16px,3.8vw,20px)] leading-[1.45] text-[#e7dcae]">
             {active.hint}
           </p>
           <button
             onClick={onClose}
             aria-label={t("common.close")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center border border-[color:var(--primary)]/55 bg-[#171817]/70"
+            className="flex h-10 w-10 shrink-0 items-center justify-center border border-[color:var(--primary)]/55 bg-[#171817]/70 text-[color:var(--rs-ink)] transition-colors hover:border-[color:var(--primary)] hover:text-[color:var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary)]/70"
           >
             <X className="h-4 w-4" />
           </button>
@@ -183,11 +183,11 @@ export function EnterSheet({
 
         {/* 情节位置选择器：在本篇任意入局点之间切换，「想在哪里开聊就在哪里聊」 */}
         {allPoints && allPoints.length > 1 && (
-          <div className="relative mb-3" data-el="enter-scene-picker">
-            <p className="mb-1 text-[11px] text-[color:var(--muted-foreground)]">
+          <div className="relative mb-4" data-el="enter-scene-picker">
+            <p className="mb-2 text-[11px] tracking-[0.08em] text-[color:var(--muted-foreground)]">
               {t("reader.scenePicker")}
             </p>
-            <div className="flex gap-1.5 overflow-x-auto no-native-scrollbar pb-1">
+            <div className="flex snap-x gap-2 overflow-x-auto no-native-scrollbar pb-1 sm:grid sm:grid-cols-3">
               {allPoints.map((p, i) => {
                 const on = p.paragraphIndex === active.paragraphIndex;
                 return (
@@ -197,16 +197,16 @@ export function EnterSheet({
                     data-el="enter-scene-option"
                     aria-pressed={on}
                     className={cn(
-                      "flex shrink-0 flex-col items-start gap-0.5 border px-2.5 py-1.5 text-left transition-colors",
+                      "group relative flex min-h-[72px] w-[min(76vw,230px)] shrink-0 snap-start flex-col items-start justify-between gap-1 border px-3 py-2.5 text-left transition-[border-color,background-color,transform] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary)]/70 sm:w-auto",
                       on
-                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)]"
-                        : "border-[color:var(--border)] text-[color:var(--muted-foreground)] hover:text-[color:var(--rs-ink)]",
+                        ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.14] text-[color:var(--primary)] shadow-[inset_3px_0_0_var(--primary)]"
+                        : "border-[color:var(--border)] text-[color:var(--muted-foreground)] hover:border-[color:var(--primary)]/70 hover:text-[color:var(--rs-ink)]",
                     )}
                   >
-                    <span className="text-[10px] opacity-80">
+                    <span className="line-clamp-1 text-[11px] leading-tight opacity-80">
                       {chapterTitleOf(p.paragraphIndex)}
                     </span>
-                    <span className="max-w-[150px] truncate text-[12px]">
+                    <span className="line-clamp-2 text-[13px] leading-snug text-[color:var(--rs-ink)]/90">
                       {p.hint}
                     </span>
                   </button>
@@ -216,17 +216,18 @@ export function EnterSheet({
           </div>
         )}
 
-        <div className="relative mb-3 grid grid-cols-3 gap-1.5" data-el="enter-actions" data-guide="enter-actions">
-          {(["dialogue", "fork", "rewrite"] as Mode[]).map((m) => (
+        <div className="relative mb-4 grid grid-cols-2 gap-2" data-el="enter-actions" data-guide="enter-actions">
+          {(["dialogue", "rewrite"] as Mode[]).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
+              aria-pressed={mode === m}
               data-el={`enter-action-${m}`}
               className={cn(
-                "border px-1.5 py-2.5 text-[13px] transition-colors",
+                "flex min-h-14 min-w-0 items-center justify-center border px-2 py-3 text-sm font-medium tracking-[0.08em] transition-[border-color,background-color,color,transform] hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary)]/70",
                 mode === m
-                  ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[#171817]"
-                  : "border-[color:var(--primary)]/55 bg-[color:var(--primary)]/[0.08] text-[color:var(--rs-ink)]",
+                  ? "border-[color:var(--primary)] bg-[color:var(--primary)] text-[#171817] shadow-[0_7px_18px_rgba(214,192,142,.12)]"
+                  : "border-[color:var(--primary)]/55 bg-[color:var(--primary)]/[0.06] text-[color:var(--rs-ink)] hover:bg-[color:var(--primary)]/[0.12]",
               )}
             >
               {t(`reader.actions.${m}`)}
@@ -245,22 +246,13 @@ export function EnterSheet({
             initialCharacterId={initialCharacterId}
           />
         )}
-        {mode === "fork" && (
-          <ForkMode
-            key={active.paragraphIndex}
-            story={story}
-            point={active}
-            authed={authed}
-            onKeep={keep("fork")}
-          />
-        )}
         {mode === "rewrite" && (
-          <RewriteMode
+          <ForkRewriteMode
             key={active.paragraphIndex}
             story={story}
             point={active}
             authed={authed}
-            onKeep={keep("rewrite")}
+            onKeep={(kind, title, body) => keep(kind)(title, body)}
           />
         )}
         </div>
@@ -782,8 +774,8 @@ function DialogueMode({
   );
 }
 
-/* --- 分叉 --- */
-function ForkMode({
+/* --- 分叉 + 改写：预设关键选择与自由脑洞共用一个入口 --- */
+function ForkRewriteMode({
   story,
   point,
   authed,
@@ -792,115 +784,42 @@ function ForkMode({
   story: Story;
   point: EnterPoint;
   authed: boolean;
-  onKeep: KeepFn;
+  onKeep: (kind: Exclude<BranchKind, "dialogue">, title: string, body: string) => void;
 }) {
   const { t } = useTranslation();
-  const [choice, setChoice] = useState<string | null>(null);
-  const [custom, setCustom] = useState("");
+  const [idea, setIdea] = useState("");
+  const [selection, setSelection] = useState<{
+    kind: Exclude<BranchKind, "dialogue">;
+    prompt: string;
+  } | null>(null);
   const [running, setRunning] = useState(false);
-  const [outcome, setOutcome] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
   const [kept, setKept] = useState(false);
   const options = point.branchOptions ?? [];
 
-  async function run(picked: string) {
+  async function runFork(choice: string) {
     if (running) return;
-    setChoice(picked);
+    setSelection({ kind: "fork", prompt: choice });
     setRunning(true);
-    setOutcome(null);
+    setResult(null);
     setKept(false);
     try {
       const text = await generateStoryAi({
         mode: "fork",
         storyId: story.id,
         anchorParagraph: point.paragraphIndex,
-        choice: picked,
+        choice,
       });
-      setOutcome(text || null);
+      setResult(text || null);
     } finally {
       setRunning(false);
     }
   }
 
-  return (
-    <div className="grid gap-2.5" data-el="fork-mode">
-      <p className="text-sm text-[#d9ca9b]">{point.branchPrompt}</p>
-      <div className="grid gap-1.5">
-        {options.map((o) => (
-          <button
-            key={o}
-            onClick={() => void run(o)}
-            className={cn(
-              "border px-3 py-2 text-left text-sm",
-              choice === o
-                ? "border-[color:var(--primary)] text-[color:var(--primary)]"
-                : "border-[color:var(--border)] text-[color:var(--rs-ink)]",
-            )}
-          >
-            {o}
-          </button>
-        ))}
-        <div className="flex gap-1.5">
-          <input
-            value={custom}
-            onChange={(e) => setCustom(e.target.value)}
-            placeholder={t("reader.fork.custom")}
-            className="min-w-0 flex-1 border border-[color:var(--border)] bg-[#171817] px-3 py-2 text-sm outline-none focus:border-[color:var(--primary)]"
-          />
-          <button
-            onClick={() => custom.trim() && void run(custom.trim())}
-            className="flex items-center gap-1 border border-[color:var(--primary)]/55 px-2.5 text-xs text-[color:var(--primary)]"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            {t("reader.fork.run")}
-          </button>
-        </div>
-      </div>
-      {running && (
-        <p className="text-xs italic text-[color:var(--muted-foreground)]">
-          {t("reader.fork.running")}
-        </p>
-      )}
-      {outcome && (
-        <>
-          <p className="whitespace-pre-line border-l-2 border-[color:var(--rs-cool)] bg-[#171817] p-2.5 text-sm leading-relaxed text-[#d9ca9b]">
-            {outcome}
-          </p>
-          <KeepOrLogin
-            authed={authed}
-            kept={kept}
-            labelKeep={t("reader.fork.keep")}
-            labelKept={t("reader.fork.kept")}
-            onKeep={() => {
-              onKeep(choice ?? "分叉", outcome);
-              setKept(true);
-            }}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-/* --- 改写 --- */
-function RewriteMode({
-  story,
-  point,
-  authed,
-  onKeep,
-}: {
-  story: Story;
-  point: EnterPoint;
-  authed: boolean;
-  onKeep: KeepFn;
-}) {
-  const { t } = useTranslation();
-  const [idea, setIdea] = useState("");
-  const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [kept, setKept] = useState(false);
-
-  async function run() {
-    if (!idea.trim() || running) return;
+  async function runRewrite() {
+    const prompt = idea.trim();
+    if (!prompt || running) return;
+    setSelection({ kind: "rewrite", prompt });
     setRunning(true);
     setResult(null);
     setKept(false);
@@ -909,7 +828,7 @@ function RewriteMode({
         mode: "rewrite",
         storyId: story.id,
         anchorParagraph: point.paragraphIndex,
-        userText: idea.trim(),
+        userText: prompt,
       });
       setResult(text || null);
     } finally {
@@ -917,34 +836,86 @@ function RewriteMode({
     }
   }
 
+  const isForkResult = selection?.kind === "fork";
+
   return (
-    <div className="grid gap-2.5" data-el="rewrite-mode">
+    <div className="grid gap-3" data-el="fork-rewrite-mode">
+      {point.branchPrompt && options.length > 0 && (
+        <section className="grid gap-2" aria-labelledby="fork-rewrite-options">
+          <div>
+            <p
+              id="fork-rewrite-options"
+              className="text-[11px] tracking-[0.08em] text-[color:var(--primary)]"
+            >
+              {t("reader.forkRewrite.presetLabel")}
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-[#d9ca9b]">
+              {point.branchPrompt}
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            {options.map((option, index) => {
+              const selected = selection?.kind === "fork" && selection.prompt === option;
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => void runFork(option)}
+                  disabled={running}
+                  aria-pressed={selected}
+                  className={cn(
+                    "flex min-h-11 items-center gap-3 border px-3 py-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--primary)]/70 disabled:opacity-60",
+                    selected
+                      ? "border-[color:var(--primary)] bg-[color:var(--primary)]/[0.12] text-[color:var(--primary)]"
+                      : "border-[color:var(--border)] text-[color:var(--rs-ink)] hover:border-[color:var(--primary)]/60",
+                  )}
+                >
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center border border-[color:var(--primary)]/45 text-[11px] text-[color:var(--primary)]">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0 leading-snug">{option}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <div className="flex items-center gap-3" aria-hidden>
+        <span className="h-px flex-1 bg-[color:var(--border)]" />
+        <span className="text-[10px] tracking-[0.12em] text-[color:var(--muted-foreground)]">
+          {t("reader.forkRewrite.customLabel")}
+        </span>
+        <span className="h-px flex-1 bg-[color:var(--border)]" />
+      </div>
+
       <textarea
         value={idea}
         onChange={(e) => setIdea(e.target.value)}
         placeholder={t("reader.rewrite.placeholder")}
         rows={3}
-        className="w-full resize-none border border-[color:var(--border)] bg-[#171817] px-3 py-2 text-sm outline-none focus:border-[color:var(--primary)]"
+        className="w-full resize-none border border-[color:var(--border)] bg-[#171817] px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-[color:var(--primary)]"
         data-el="rewrite-input"
       />
       <button
-        onClick={() => void run()}
-        disabled={running}
-        className="flex items-center justify-center gap-1.5 bg-[color:var(--primary)] px-3 py-2 text-sm text-[#171817] disabled:opacity-50"
+        type="button"
+        onClick={() => void runRewrite()}
+        disabled={running || !idea.trim()}
+        className="flex min-h-11 items-center justify-center gap-1.5 bg-[color:var(--primary)] px-3 py-2 text-sm text-[#171817] transition-opacity disabled:opacity-45"
       >
         <Sparkles className="h-4 w-4" />
         {t("reader.rewrite.run")}
       </button>
       {running && (
         <p className="text-xs italic text-[color:var(--muted-foreground)]">
-          {t("reader.rewrite.running")}
+          {isForkResult ? t("reader.fork.running") : t("reader.rewrite.running")}
         </p>
       )}
-      {result && (
+      {result && selection && (
         <>
           <div className="border border-[color:var(--rs-cool)]/50 bg-[#171817] p-2.5">
             <span className="mb-1.5 inline-block bg-[color:var(--rs-cool)]/20 px-1.5 py-0.5 text-[10px] text-[color:var(--rs-cool)]">
-              {t("reader.rewrite.badge")}
+              {isForkResult ? t("reader.forkRewrite.forkBadge") : t("reader.rewrite.badge")}
             </span>
             <p className="whitespace-pre-line font-heading text-sm leading-relaxed text-[#d9ca9b]">
               {result}
@@ -953,10 +924,10 @@ function RewriteMode({
           <KeepOrLogin
             authed={authed}
             kept={kept}
-            labelKeep={t("reader.rewrite.keep")}
-            labelKept={t("reader.rewrite.kept")}
+            labelKeep={isForkResult ? t("reader.fork.keep") : t("reader.rewrite.keep")}
+            labelKept={isForkResult ? t("reader.fork.kept") : t("reader.rewrite.kept")}
             onKeep={() => {
-              onKeep("读者脑洞版", result);
+              onKeep(selection.kind, selection.prompt, result);
               setKept(true);
             }}
           />
